@@ -17,13 +17,17 @@ struct SwiftList: ParsableCommand {
   var path: String?
 
   func run() throws {
+    let files = FileManager.default
+    let location = URL(fileURLWithPath: path ?? files.currentDirectoryPath)
     do {
       let contents = try files.contentsOfDirectory(
-		atPath: path ?? files.currentDirectoryPath
+        at: location,
+        includingPropertiesForKeys: nil,
+        options: all ? [] : [.skipsHiddenFiles]
       )
-		
-      for file in contents {
-        print(file)
+      
+      for url in contents {
+        print(url.lastPathComponent)
       }
     } catch {
       print("Failed to list contents of directory: \(error)")
