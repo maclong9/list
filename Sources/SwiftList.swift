@@ -3,6 +3,32 @@ import Foundation
 
 let files = FileManager.default
 
+func findContents(path: URL, _ all: Bool, _ recurse: Bool) throws -> String {
+  var result = ""
+  let contents = try files.contentsOfDirectory(
+    at: path,
+    includingPropertiesForKeys: nil,
+    options: all ? [] : [.skipsHiddenFiles]
+  )
+  
+  for url in contents {
+    result += "\(url.lastPathComponent)\t"
+  }
+  
+  if recurse {
+    result += "\n"
+    
+    for url in contents {
+      if url.hasDirectoryPath {
+        result += "\n./\(url.lastPathComponent):\n"
+        result += try findContents(path: url, all, recurse)
+      }
+    }
+  }
+  
+  return result
+}
+
 @main
 struct SwiftList: ParsableCommand {
   @Flag(name: .shortAndLong, help: "Display all files, including hidden.")
@@ -19,18 +45,8 @@ struct SwiftList: ParsableCommand {
   func run() throws {
     let files = FileManager.default
     let location = URL(fileURLWithPath: path ?? files.currentDirectoryPath)
-    do {
-      let contents = try files.contentsOfDirectory(
-        at: location,
-        includingPropertiesForKeys: nil,
-        options: all ? [] : [.skipsHiddenFiles]
-      )
-      
-      for url in contents {
-        print(url.lastPathComponent)
-      }
-    } catch {
-      print("Failed to list contents of directory: \(error)")
-    }
+    let result = try findContents(path: location, all, recurse)
+    
+    print(result)
   }
 }
