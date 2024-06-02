@@ -3,12 +3,6 @@ import Foundation
 
 let files = FileManager.default
 
-enum ConsoleColor: String {
-  case red = "\u{001B}[0;31m"
-  case blue = "\u{001B}[0;34m"
-  case reset = "\u{001B}[0;0m"
-}
-
 func determineColor(path: URL) -> String {
   // TODO: Determine white, red and blue for file, executable and directory
   return ""
@@ -23,8 +17,8 @@ func findContents(path: URL, _ all: Bool, _ recurse: Bool) throws -> String {
   )
 
   for url in contents {
-    var color = determineColor(path: url)
-    result += "\(color)\(url.lastPathComponent)\(ConsoleColor.reset.rawValue)\t"
+    let color = determineColor(path: url)
+    result += "\(color)\(url.lastPathComponent)\t"
   }
 
   if recurse {
