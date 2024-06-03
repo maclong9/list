@@ -3,7 +3,7 @@ import Foundation
 
 let files = FileManager.default
 
-func determineColor(path: URL) -> String {
+func determineColor(_ path: URL) -> String {
   // TODO: Determine white, red and blue for file, executable and directory
   return ""
 }
@@ -17,7 +17,7 @@ func findContents(path: URL, _ all: Bool, _ recurse: Bool) throws -> String {
   )
 
   for url in contents {
-    let color = determineColor(path: url)
+    let color = determineColor(url)
     result += "\(color)\(url.lastPathComponent)\t"
   }
 
