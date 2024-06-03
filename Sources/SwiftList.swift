@@ -8,7 +8,7 @@ func determineColor(_ path: URL) -> String {
   return ""
 }
 
-func findContents(path: URL, _ all: Bool, _ recurse: Bool) throws -> String {
+func findContents(at path: URL, _ all: Bool, _ recurse: Bool) throws -> String {
   var result = ""
   let contents = try files.contentsOfDirectory(
     at: path,
@@ -27,7 +27,7 @@ func findContents(path: URL, _ all: Bool, _ recurse: Bool) throws -> String {
     for url in contents {
       if url.hasDirectoryPath {
         result += "\n./\(url.lastPathComponent):\n"
-        result += try findContents(path: url, all, recurse)
+        result += try findContents(at: url, all, recurse)
       }
     }
   }
@@ -51,7 +51,7 @@ struct SwiftList: ParsableCommand {
   func run() throws {
     let files = FileManager.default
     let location = URL(fileURLWithPath: path ?? files.currentDirectoryPath)
-    let result = try findContents(path: location, all, recurse)
+    let result = try findContents(at: location, all, recurse)
 
     print(result)
   }
