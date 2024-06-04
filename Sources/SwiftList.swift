@@ -1,8 +1,6 @@
 import ArgumentParser
 import Foundation
 
-let files = FileManager.default
-
 struct FileRepresentation {
   let icon: String
   let color: String
@@ -17,6 +15,8 @@ struct DisplayOptions {
   let icons: Bool
   let oneLine: Bool
 }
+
+let files = FileManager.default
 
 func getFileAttributes(_ location: URL, with opts: DisplayOptions) throws -> String {
   let fileAttributes = try files.attributesOfItem(atPath: location.path)
