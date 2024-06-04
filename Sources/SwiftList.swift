@@ -17,15 +17,15 @@ struct DisplayOptions {
   let oneLine: Bool
 }
 
-func printAttributes(_ location: URL) throws {
+func printAttributes(_ location: URL, long: Bool) throws {
   // TODO: Add File Attributes for Printing with --long
   // MARK: -rw-r--r--  1 mac  staff  405  2 Jun 11:28 Package.resolved
-  print("Attributes:")
   let fileAttributes = try files.attributesOfItem(atPath: location.path)
   print(
     fileAttributes[.posixPermissions] ?? "", fileAttributes[.ownerAccountName] ?? "",
     fileAttributes[.groupOwnerAccountName] ?? "", fileAttributes[.size] ?? "",
-    fileAttributes[.modificationDate] ?? ""
+    fileAttributes[.modificationDate] ?? "",
+    location.lastPathComponent
   )
 }
 
