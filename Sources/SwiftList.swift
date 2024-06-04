@@ -11,22 +11,19 @@ struct FileRepresentation {
 struct DisplayOptions {
   let location: URL
   let all: Bool
+  let long: Bool
   let recurse: Bool
   let color: Bool
   let icons: Bool
   let oneLine: Bool
 }
 
-func printAttributes(_ location: URL, long: Bool) throws {
-  // TODO: Add File Attributes for Printing with --long
-  // MARK: -rw-r--r--  1 mac  staff  405  2 Jun 11:28 Package.resolved
+func getFileAttributes(_ location: URL, with opts: DisplayOptions) throws -> String {
   let fileAttributes = try files.attributesOfItem(atPath: location.path)
-  print(
-    fileAttributes[.posixPermissions] ?? "", fileAttributes[.ownerAccountName] ?? "",
-    fileAttributes[.groupOwnerAccountName] ?? "", fileAttributes[.size] ?? "",
-    fileAttributes[.modificationDate] ?? "",
-    location.lastPathComponent
-  )
+  let file = determineType(location)
+
+  return
+    "\(opts.icons ? "\(file.icon) " : "")\(opts.color ? file.color : "")\(opts.long ? fileAttributes[.posixPermissions] ?? "" : "") \(opts.long ? fileAttributes[.ownerAccountName] ?? "" : "") \(opts.long ? fileAttributes[.groupOwnerAccountName] ?? "" : "") \(opts.long ? fileAttributes[.size] ?? "" : "") \(opts.long ? fileAttributes[.modificationDate] ?? "" : "") \(location.lastPathComponent)\(opts.oneLine || opts.long ? "\n" : "  ")\(opts.color ? "\u{001B}[0;0m" : "")"
 }
 
 func determineType(_ location: URL) -> FileRepresentation {
@@ -51,9 +48,7 @@ func findContents(with opts: DisplayOptions) throws -> String {
   )
 
   for url in contents {
-    let file = determineType(url)
-    result +=
-      "\(opts.icons ? "\(file.icon) " : "")\(opts.color ? file.color : "")\(url.lastPathComponent)\(opts.oneLine ? "\n" : "  ")\(opts.color ? "\u{001B}[0;0m" : "")"
+    result += try getFileAttributes(url, with: opts)
   }
 
   if opts.recurse {
@@ -68,6 +63,7 @@ func findContents(with opts: DisplayOptions) throws -> String {
           with: DisplayOptions(
             location: url,
             all: opts.all,
+            long: opts.long,
             recurse: opts.recurse,
             color: opts.color,
             icons: opts.icons,
@@ -103,6 +99,7 @@ struct SwiftList: ParsableCommand {
       with: DisplayOptions(
         location: location,
         all: all,
+        long: long,
         recurse: recurse,
         color: color,
         icons: icons,
@@ -110,6 +107,5 @@ struct SwiftList: ParsableCommand {
       ))
 
     print(result)
-    try printAttributes(location)
   }
 }
