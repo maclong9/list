@@ -17,6 +17,11 @@ struct DisplayOptions {
   let oneLine: Bool
 }
 
+func printAttributes(_ location: URL) throws {
+  // TODO: Add File Attributes for Printing with --long
+  // MARK: -rw-r--r--  1 mac  staff  405  2 Jun 11:28 Package.resolved
+}
+
 func determineType(_ location: URL) -> FileRepresentation {
   if location.hasDirectoryPath {
     return FileRepresentation(icon: "📁", color: "\u{001B}[0;34m")
@@ -41,12 +46,14 @@ func findContents(with opts: DisplayOptions) throws -> String {
   for url in contents {
     let file = determineType(url)
     result +=
-      "\(opts.icons ? file.icon : "") \(opts.color ? file.color : "")\(url.lastPathComponent)\(opts.oneLine ? "\n" : "  ")\(opts.color ? "\u{001B}[0;0m" : "")"
+      "\(opts.icons ? "\(file.icon) " : "")\(opts.color ? file.color : "")\(url.lastPathComponent)\(opts.oneLine ? "\n" : "  ")\(opts.color ? "\u{001B}[0;0m" : "")"
   }
 
   if opts.recurse {
-    result += "\n"
-
+    if !opts.oneLine {
+      result += "\n"
+    }
+    
     for url in contents {
       if url.hasDirectoryPath {
         result += "\n\(opts.icons ? "📁 " : "./")\(url.lastPathComponent):\n"
@@ -94,7 +101,8 @@ struct SwiftList: ParsableCommand {
         icons: icons,
         oneLine: oneLine
       ))
-
+    
     print(result)
+    try printAttributes(location)
   }
 }
