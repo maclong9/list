@@ -3,35 +3,63 @@ import Foundation
 
 let files = FileManager.default
 
-func determineColor(_ path: URL) -> String {
-  // TODO: Determine white, red and blue for file, executable and directory
-  return ""
+struct FileRepresentation {
+  let icon: String
+  let color: String
 }
 
-func findContents(at path: URL, _ all: Bool, _ recurse: Bool) throws -> String {
+struct DisplayOptions {
+  let location: URL
+  let all: Bool
+  let recurse: Bool
+  let color: Bool
+  let icons: Bool
+  let oneLine: Bool
+}
+
+func determineType(_ location: URL) -> FileRepresentation {
+  if location.hasDirectoryPath {
+    return FileRepresentation(icon: "📁", color: "\u{001B}[0;34m")
+  }
+  
+  if files.isExecutableFile(atPath: location.path) {
+    return FileRepresentation(icon: "⚙️", color: "\u{001B}[0;31m ")
+  }
+  
+  return FileRepresentation(icon: "📃", color: "\u{001B}[0;37m")
+}
+
+func findContents(with opts: DisplayOptions) throws -> String {
   var result = ""
   let contents = try files.contentsOfDirectory(
-    at: path,
+    at: opts.location,
     includingPropertiesForKeys: nil,
-    options: all ? [] : [.skipsHiddenFiles]
+    options: opts.all ? [] : [.skipsHiddenFiles]
   )
-
+  
   for url in contents {
-    let color = determineColor(url)
-    result += "\(color)\(url.lastPathComponent)\t"
+    let file = determineType(url)
+    result += "\(opts.icons ? file.icon : "") \(opts.color ? file.color : "")\(url.lastPathComponent)\(opts.oneLine ? "\n" : "  ")\(opts.color ? "\u{001B}[0;0m" : "")"
   }
-
-  if recurse {
+  
+  if opts.recurse {
     result += "\n"
-
+    
     for url in contents {
       if url.hasDirectoryPath {
-        result += "\n./\(url.lastPathComponent):\n"
-        result += try findContents(at: url, all, recurse)
+        result += "\n\(opts.icons ? "📁 " : "./")\(url.lastPathComponent):\n"
+        result += try findContents(with: DisplayOptions(
+          location: url,
+          all: opts.all,
+          recurse: opts.recurse,
+          color: opts.color,
+          icons: opts.icons,
+          oneLine: opts.oneLine
+        ))
       }
     }
   }
-
+  
   return result
 }
 
@@ -45,14 +73,24 @@ struct SwiftList: ParsableCommand {
   var recurse = false
   @Flag(name: .shortAndLong, help: "Colorize the output.")
   var color = false
+  @Flag(name: .shortAndLong, help: "Display each file on its own line.")
+  var oneLine = false
+  @Flag(name: .shortAndLong, help: "Display icons denoting file type.")
+  var icons = false
   @Argument(help: "List files at path, omit for current directory.")
   var path: String?
-
+  
   func run() throws {
-    let files = FileManager.default
     let location = URL(fileURLWithPath: path ?? files.currentDirectoryPath)
-    let result = try findContents(at: location, all, recurse)
-
+    let result = try findContents(with: DisplayOptions(
+      location: location,
+      all: all,
+      recurse: recurse,
+      color: color,
+      icons: icons,
+      oneLine: oneLine
+    ))
+    
     print(result)
   }
 }
