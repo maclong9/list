@@ -20,6 +20,13 @@ struct DisplayOptions {
 func printAttributes(_ location: URL) throws {
   // TODO: Add File Attributes for Printing with --long
   // MARK: -rw-r--r--  1 mac  staff  405  2 Jun 11:28 Package.resolved
+  print("Attributes:")
+  let fileAttributes = try files.attributesOfItem(atPath: location.path)
+  print(
+    fileAttributes[.posixPermissions] ?? "", fileAttributes[.ownerAccountName] ?? "",
+    fileAttributes[.groupOwnerAccountName] ?? "", fileAttributes[.size] ?? "",
+    fileAttributes[.modificationDate] ?? ""
+  )
 }
 
 func determineType(_ location: URL) -> FileRepresentation {
@@ -53,7 +60,7 @@ func findContents(with opts: DisplayOptions) throws -> String {
     if !opts.oneLine {
       result += "\n"
     }
-    
+
     for url in contents {
       if url.hasDirectoryPath {
         result += "\n\(opts.icons ? "📁 " : "./")\(url.lastPathComponent):\n"
@@ -101,7 +108,7 @@ struct SwiftList: ParsableCommand {
         icons: icons,
         oneLine: oneLine
       ))
-    
+
     print(result)
     try printAttributes(location)
   }
