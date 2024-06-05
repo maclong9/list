@@ -16,6 +16,28 @@ struct DisplayOptions {
   let oneLine: Bool
 }
 
+let files = FileManager.default
+
+func getFileAttributes(_ location: URL, with opts: DisplayOptions) throws -> String {
+  let fileAttributes = try files.attributesOfItem(atPath: location.path)
+  let file = determineType(location)
+
+  return
+    "\(opts.icons ? "\(file.icon) " : "")\(opts.color ? file.color : "")\(opts.long ? fileAttributes[.posixPermissions] ?? "" : "") \(opts.long ? fileAttributes[.ownerAccountName] ?? "" : "") \(opts.long ? fileAttributes[.groupOwnerAccountName] ?? "" : "") \(opts.long ? fileAttributes[.size] ?? "" : "") \(opts.long ? fileAttributes[.modificationDate] ?? "" : "") \(location.lastPathComponent)\(opts.oneLine || opts.long ? "\n" : "  ")\(opts.color ? "\u{001B}[0;0m" : "")"
+}
+
+func determineType(_ location: URL) -> FileRepresentation {
+  if location.hasDirectoryPath {
+    return FileRepresentation(icon: "📁", color: "\u{001B}[0;34m")
+  }
+
+  if files.isExecutableFile(atPath: location.path) {
+    return FileRepresentation(icon: "⚙️", color: "\u{001B}[0;31m ")
+  }
+
+  return FileRepresentation(icon: "📃", color: "\u{001B}[0;37m")
+}
+
 class FileManagerHelper {
   static let fm = FileManager.default
 
