@@ -34,10 +34,10 @@ class FileManagerHelper {
   }
 
   static func getFileAttributes(_ location: URL, with opts: DisplayOptions) throws -> String {
-    var attributesString = ""
     let attributes = try fm.attributesOfItem(atPath: location.path)
     let file = determineType(location)
-
+    var attributesString = ""
+    
     if opts.icons {
       attributesString.append(file.icon + " ")
     }
