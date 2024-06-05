@@ -27,7 +27,7 @@ class FileManagerHelper {
     }
 
     if fm.isExecutableFile(atPath: location.path) {
-      return FileRepresentation(icon: "⚙️ ", color: "\u{001B}[0;31m ")
+      return FileRepresentation(icon: "⚙️ ", color: "\u{001B}[0;31m")
     }
 
     return FileRepresentation(icon: "📃", color: "\u{001B}[0;37m")
