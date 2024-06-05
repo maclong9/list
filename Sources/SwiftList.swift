@@ -34,42 +34,43 @@ class FileManagerHelper {
   }
 
   static func getFileAttributes(_ location: URL, with opts: DisplayOptions) throws -> String {
-    var result = ""
-    let fileAttributes = try fm.attributesOfItem(atPath: location.path)
+    var attributesString = ""
+    let attributes = try fm.attributesOfItem(atPath: location.path)
     let file = determineType(location)
 
     if opts.icons {
-      result.append(file.icon + " ")
+      attributesString.append(file.icon + " ")
     }
 
     if opts.long {
-      result.append(String(fileAttributes[.posixPermissions] as! Int) + " ")
-      result.append(fileAttributes[.ownerAccountName] as! String + " ")
-      result.append(fileAttributes[.groupOwnerAccountName] as! String + " ")
-      result.append(String(format: "%-4d", fileAttributes[.size] as! Int) + " ")
-
-      if let modificationDate = fileAttributes[.modificationDate] as? Date {
+      attributesString.append(String(attributes[.posixPermissions] as! Int) + " ")
+      attributesString.append(attributes[.ownerAccountName] as! String + " ")
+      attributesString.append(attributes[.groupOwnerAccountName] as! String + " ")
+      // TODO: Add Link Count
+      attributesString.append(String(format: "%-4d", attributes[.size] as! Int) + " ")
+      
+      if let modificationDate = attributes[.modificationDate] as? Date {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd MMM HH:mm"
-        result.append(dateFormatter.string(from: modificationDate) + " ")
+        attributesString.append(dateFormatter.string(from: modificationDate) + " ")
       }
     }
 
     if opts.color {
-      result.append(file.color)
-      result.append(location.lastPathComponent)
-      result.append("\u{001B}[0;0m")
+      attributesString.append(file.color)
+      attributesString.append(location.lastPathComponent)
+      attributesString.append("\u{001B}[0;0m")
     } else {
-      result.append(location.lastPathComponent)
+      attributesString.append(location.lastPathComponent)
     }
 
     if opts.oneLine || opts.long {
-      result.append("\n")
+      attributesString.append("\n")
     } else {
-      result.append("  ")
+      attributesString.append("  ")
     }
 
-    return result
+    return attributesString
   }
 
   static func findContents(with opts: DisplayOptions) throws -> String {
@@ -86,13 +87,13 @@ class FileManagerHelper {
     }
 
     if opts.recurse {
-      if !opts.oneLine {
+      if !opts.oneLine || !opts.long {
         result += "\n"
       }
 
       for url in contents {
         if url.hasDirectoryPath {
-          result += "\n\(opts.icons ? "📁 " : "./")\(url.lastPathComponent):\n"
+          result += "\(opts.icons ? "📁 " : "./")\(url.lastPathComponent):\n"
           result += try findContents(
             with: DisplayOptions(
               location: url,
@@ -123,10 +124,10 @@ struct SwiftList: ParsableCommand {
   var color = false
   @Flag(name: .shortAndLong, help: "Display icons denoting file type.")
   var icons = false
-  @Argument(help: "List files at path, omit for current directory.")
-  var path: String?
   @Flag(name: .shortAndLong, help: "Display each file on its own line.")
   var oneLine = false
+  @Argument(help: "List files at path, omit for current directory.")
+  var path: String?
 
   func run() throws {
     print(
