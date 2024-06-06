@@ -104,19 +104,9 @@ class FileManagerHelper {
       for url in contents {
         if url.hasDirectoryPath {
           result.append("\n\(opts.icons ? "📁 " : "./")\(url.lastPathComponent):\n")
-          result.append(
-            try findContents(
-              with: DisplayOptions(
-                location: url,
-                all: opts.all,
-                long: opts.long,
-                recurse: opts.recurse,
-                color: opts.color,
-                icons: opts.icons,
-                oneLine: opts.oneLine
-              )
-            )
-          )
+          let newOpts = opts
+          newOpts.location = url
+          result.append(try findContents(with: newOpts))
         }
       }
     }
