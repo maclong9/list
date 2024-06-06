@@ -53,7 +53,7 @@ class FileManagerHelper {
       attributesString.append(String(attributes[.posixPermissions] as! Int) + " ")
       attributesString.append(attributes[.ownerAccountName] as! String + " ")
       attributesString.append(attributes[.groupOwnerAccountName] as! String + " ")
-      // TODO: Add Link Count
+      attributesString.append(String(attributes[.referenceCount] as! Int) + " ")
       attributesString.append(String(format: "%-4d", attributes[.size] as! Int) + " ")
 
       if let modificationDate = attributes[.modificationDate] as? Date {
