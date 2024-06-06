@@ -14,7 +14,7 @@ final class SwiftListTests: XCTestCase {
     let testDir = tempDir.appendingPathComponent("testDir")
 
     try FileManagerHelper.fm.createDirectory(
-      at: tempDir,
+      at: testDir,
       withIntermediateDirectories: true
     )
 
@@ -37,12 +37,6 @@ final class SwiftListTests: XCTestCase {
     attributes[.posixPermissions] = 0o755  // rwxr-xr-x
     try FileManager.default.setAttributes(
       attributes, ofItemAtPath: executableFile.path
-    )
-
-    try FileManagerHelper.fm.createDirectory(
-      at: testDir,
-      withIntermediateDirectories: true,
-      attributes: nil
     )
 
     FileManagerHelper.fm.createFile(
