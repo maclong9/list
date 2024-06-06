@@ -123,7 +123,7 @@ class FileManagerHelper {
 }
 
 @main
-struct SwiftList: ParsableCommand {
+struct sls: ParsableCommand {
   @Flag(name: .shortAndLong, help: "Display all files, including hidden.")
   var all = false
   @Flag(name: .shortAndLong, help: "Display file attributes, one file per line")
