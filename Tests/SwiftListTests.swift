@@ -6,6 +6,7 @@ import XCTest
 final class SwiftListTests: XCTestCase {
   var tempDir: URL!
 
+  // Creates tempDir with some example files
   override func setUpWithError() throws {
     tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString
