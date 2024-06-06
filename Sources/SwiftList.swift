@@ -28,7 +28,7 @@ let files = FileManager.default
 class FileManagerHelper {
   static let fm = FileManager.default
 
-  static func determineType(_ location: URL) -> FileRepresentation {
+  static func determineType(of location: URL) -> FileRepresentation {
     if location.hasDirectoryPath {
       return FileRepresentation(icon: "📁", color: TerminalColors.blue.rawValue)
     }
@@ -42,7 +42,7 @@ class FileManagerHelper {
 
   static func getFileAttributes(at location: URL, with opts: DisplayOptions) throws -> String {
     let attributes = try fm.attributesOfItem(atPath: location.path)
-    let file = determineType(location)
+    let file = determineType(of: location)
     var attributesString = ""
 
     if opts.icons {
