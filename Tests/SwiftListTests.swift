@@ -198,6 +198,7 @@ final class SwiftListTests: XCTestCase {
         oneLine: false
       )
     )
+    
 
     XCTAssertTrue(result.contains("[0;37m"))
     XCTAssertTrue(result.contains("[0;31m"))
