@@ -7,7 +7,7 @@ struct FileRepresentation {
 }
 
 struct DisplayOptions {
-  let location: URL
+  let location: URL?
   let all: Bool
   let long: Bool
   let recurse: Bool
@@ -37,7 +37,7 @@ class FileManagerHelper {
     let attributes = try fm.attributesOfItem(atPath: location.path)
     let file = determineType(location)
     var attributesString = ""
-    
+
     if opts.icons {
       attributesString.append(file.icon + " ")
     }
@@ -48,7 +48,7 @@ class FileManagerHelper {
       attributesString.append(attributes[.groupOwnerAccountName] as! String + " ")
       // TODO: Add Link Count
       attributesString.append(String(format: "%-4d", attributes[.size] as! Int) + " ")
-      
+
       if let modificationDate = attributes[.modificationDate] as? Date {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd MMM HH:mm"
@@ -77,7 +77,7 @@ class FileManagerHelper {
     var result = ""
 
     let contents = try fm.contentsOfDirectory(
-      at: opts.location,
+      at: opts.location ?? URL(fileURLWithPath: fm.currentDirectoryPath),
       includingPropertiesForKeys: nil,
       options: opts.all ? [] : [.skipsHiddenFiles]
     )
@@ -133,7 +133,7 @@ struct SwiftList: ParsableCommand {
     print(
       try FileManagerHelper.findContents(
         with: DisplayOptions(
-          location: URL(fileURLWithPath: path ?? FileManagerHelper.fm.currentDirectoryPath),
+          location: path != nil ? URL(fileURLWithPath: path!) : nil,
           all: all,
           long: long,
           recurse: recurse,
