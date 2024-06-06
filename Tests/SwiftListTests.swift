@@ -33,7 +33,7 @@ final class SwiftListTests: XCTestCase {
       contents: "#!/bin/sh\necho Hello, World!".data(using: .utf8)
     )
     var attributes = [FileAttributeKey: Any]()
-    attributes[.posixPermissions] = 0o755  // rwxr-xr-x
+    attributes[.posixPermissions] = 0o755
     try FileManager.default.setAttributes(
       attributes, ofItemAtPath: executableFile.path
     )
