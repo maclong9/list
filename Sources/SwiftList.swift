@@ -16,6 +16,13 @@ struct DisplayOptions {
   let oneLine: Bool
 }
 
+enum TerminalColors: String {
+  case white = "\u{001B}[0;37m"
+  case red = "\u{001B}[0;31m"
+  case blue = "\u{001B}[0;34m"
+  case reset = "\u{001B}[0;0m"
+}
+
 let files = FileManager.default
 
 class FileManagerHelper {
@@ -23,14 +30,14 @@ class FileManagerHelper {
 
   static func determineType(_ location: URL) -> FileRepresentation {
     if location.hasDirectoryPath {
-      return FileRepresentation(icon: "📁", color: "\u{001B}[0;34m")
+      return FileRepresentation(icon: "📁", color: TerminalColors.blue.rawValue)
     }
 
     if fm.isExecutableFile(atPath: location.path) {
-      return FileRepresentation(icon: "⚙️ ", color: "\u{001B}[0;31m")
+      return FileRepresentation(icon: "⚙️ ", color: TerminalColors.red.rawValue)
     }
 
-    return FileRepresentation(icon: "📃", color: "\u{001B}[0;37m")
+    return FileRepresentation(icon: "📃", color: TerminalColors.white.rawValue)
   }
 
   static func getFileAttributes(_ location: URL, with opts: DisplayOptions) throws -> String {
@@ -59,7 +66,7 @@ class FileManagerHelper {
     if opts.color {
       attributesString.append(file.color)
       attributesString.append(location.lastPathComponent)
-      attributesString.append("\u{001B}[0;0m")
+      attributesString.append(TerminalColors.reset.rawValue)
     } else {
       attributesString.append(location.lastPathComponent)
     }
@@ -83,27 +90,30 @@ class FileManagerHelper {
     )
 
     for url in contents {
-      result += try getFileAttributes(url, with: opts)
+      result.append(try getFileAttributes(url, with: opts))
     }
 
     if opts.recurse {
       if !opts.oneLine || !opts.long {
-        result += "\n"
+        result.append("\n")
       }
 
       for url in contents {
         if url.hasDirectoryPath {
-          result += "\(opts.icons ? "📁 " : "./")\(url.lastPathComponent):\n"
-          result += try findContents(
-            with: DisplayOptions(
-              location: url,
-              all: opts.all,
-              long: opts.long,
-              recurse: opts.recurse,
-              color: opts.color,
-              icons: opts.icons,
-              oneLine: opts.oneLine
-            ))
+          result.append("\n\(opts.icons ? "📁 " : "./")\(url.lastPathComponent):\n")
+          result.append(
+            try findContents(
+              with: DisplayOptions(
+                location: url,
+                all: opts.all,
+                long: opts.long,
+                recurse: opts.recurse,
+                color: opts.color,
+                icons: opts.icons,
+                oneLine: opts.oneLine
+              )
+            )
+          )
         }
       }
     }
