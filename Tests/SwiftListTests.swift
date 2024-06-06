@@ -1,6 +1,5 @@
 import ArgumentParser
 import XCTest
-
 @testable import sls
 
 final class SwiftListTests: XCTestCase {
