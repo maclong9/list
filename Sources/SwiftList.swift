@@ -40,7 +40,7 @@ class FileManagerHelper {
     return FileRepresentation(icon: "📃", color: TerminalColors.white.rawValue)
   }
 
-  static func getFileAttributes(_ location: URL, with opts: DisplayOptions) throws -> String {
+  static func getFileAttributes(at location: URL, with opts: DisplayOptions) throws -> String {
     let attributes = try fm.attributesOfItem(atPath: location.path)
     let file = determineType(location)
     var attributesString = ""
@@ -90,7 +90,7 @@ class FileManagerHelper {
     )
 
     for url in contents {
-      result.append(try getFileAttributes(url, with: opts))
+      result.append(try getFileAttributes(at: url, with: opts))
     }
 
     if opts.recurse {
