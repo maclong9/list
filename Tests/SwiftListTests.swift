@@ -53,6 +53,7 @@ final class SwiftListTests: XCTestCase {
     )
   }
 
+  // Removes tempDir
   override func tearDownWithError() throws {
     try FileManagerHelper.fm.removeItem(at: tempDir)
   }
@@ -153,10 +154,11 @@ final class SwiftListTests: XCTestCase {
       )
     )
 
-    let regexPattern = #"493\s+\w+\s+\w+\s+28\s+\d{2}\s+\w{3}\s+\d{2}:\d{2}\s+executableFile\.sh\n"#
+    let regexPattern =
+      #"493\s+\w+\s+\w+\s+1\s+28\s+\d{2}\s+Jun\s+\d{2}:\d{2}\s+executableFile\.sh\n"#
     let regex = try! NSRegularExpression(pattern: regexPattern)
     let range = NSRange(location: 0, length: result.utf16.count)
-
+    print(result)
     XCTAssertNotNil(
       regex.firstMatch(
         in: result,
