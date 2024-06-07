@@ -217,6 +217,7 @@ final class SwiftListTests: XCTestCase {
     XCTAssertTrue(result.contains("📃"))
     XCTAssertTrue(result.contains("📁"))
     XCTAssertTrue(result.contains("⚙️"))
+    XCTAssertTrue(result.contains("🔗"))
   }
 
   // Lists files at specified directory with --oneLine flag
