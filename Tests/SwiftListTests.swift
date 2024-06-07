@@ -52,7 +52,9 @@ final class SwiftListTests: XCTestCase {
       contents: "Linked file content".data(using: .utf8)
     )
 
-    try FileManagerHelper.fm.createSymbolicLink(at: tempDir.appendingPathComponent(linkedFile.lastPathComponent), withDestinationURL: linkedFile)
+    try FileManagerHelper.fm.createSymbolicLink(
+      at: tempDir.appendingPathComponent(linkedFile.lastPathComponent),
+      withDestinationURL: linkedFile)
   }
 
   // Removes tempDir
@@ -184,7 +186,7 @@ final class SwiftListTests: XCTestCase {
         oneLine: false
       )
     )
-    
+
     XCTAssertTrue(result.contains("testDir:"))
     XCTAssertTrue(result.contains("hello.swift"))
   }
