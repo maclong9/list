@@ -29,7 +29,7 @@ let files = FileManager.default
 class FileManagerHelper {
   static let fm = FileManager.default
 
-  static func determineType(_ location: URL) throws -> FileRepresentation {
+  static func determineType(of location: URL) -> FileRepresentation {
     if location.hasDirectoryPath {
       return FileRepresentation(icon: "📁", color: TerminalColors.blue.rawValue)
     }
@@ -49,10 +49,14 @@ class FileManagerHelper {
     return FileRepresentation(icon: "📃", color: TerminalColors.white.rawValue)
   }
 
-  static func getFileAttributes(_ location: URL, with opts: DisplayOptions) throws -> String {
+  static func getFileAttributes(at location: URL, with opts: DisplayOptions) throws -> String {
     let attributes = try fm.attributesOfItem(atPath: location.path)
     let file = try determineType(location)
     var attributesString = ""
+
+    if opts.color || opts.icons {
+      let file = determineType(of: location)
+    }
 
     if opts.icons {
       attributesString.append(file.icon + " ")
@@ -99,7 +103,7 @@ class FileManagerHelper {
     )
 
     for url in contents {
-      result.append(try getFileAttributes(url, with: opts))
+      result.append(try getFileAttributes(at: url, with: opts))
     }
 
     if opts.recurse {
@@ -110,19 +114,9 @@ class FileManagerHelper {
       for url in contents {
         if url.hasDirectoryPath {
           result.append("\n\(opts.icons ? "📁 " : "./")\(url.lastPathComponent):\n")
-          result.append(
-            try findContents(
-              with: DisplayOptions(
-                location: url,
-                all: opts.all,
-                long: opts.long,
-                recurse: opts.recurse,
-                color: opts.color,
-                icons: opts.icons,
-                oneLine: opts.oneLine
-              )
-            )
-          )
+          let newOpts = opts
+          newOpts.location = url
+          result.append(try findContents(with: newOpts))
         }
       }
     }
