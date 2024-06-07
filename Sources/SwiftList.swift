@@ -50,11 +50,11 @@ class FileManagerHelper {
 
   static func getFileAttributes(at location: URL, with opts: DisplayOptions) throws -> String {
     let attributes = try fm.attributesOfItem(atPath: location.path)
-    let file: FileRepresentation? = opts.color || opts.icons ? try determineType(of: location) : nil
+    let fileRepresentation: FileRepresentation? = opts.color || opts.icons ? try determineType(of: location) : nil
     var attributesString = ""
 
-    if file != nil {
-      attributesString.append(file!.icon + " ")
+    if fileRepresentation != nil {
+      attributesString.append(fileRepresentation!.icon + " ")
     }
 
     if opts.long {
@@ -71,8 +71,8 @@ class FileManagerHelper {
       }
     }
 
-    if file != nil {
-      attributesString.append(file!.color)
+    if fileRepresentation != nil {
+      attributesString.append(fileRepresentation!.color)
       attributesString.append(location.lastPathComponent)
       attributesString.append(TerminalColors.reset.rawValue)
     } else {
