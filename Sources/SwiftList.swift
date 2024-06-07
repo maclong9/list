@@ -7,7 +7,7 @@ struct FileRepresentation {
 }
 
 struct DisplayOptions {
-  let location: URL?
+  var location: URL?
   let all: Bool
   let long: Bool
   let recurse: Bool
@@ -29,7 +29,7 @@ let files = FileManager.default
 class FileManagerHelper {
   static let fm = FileManager.default
 
-  static func determineType(of location: URL) -> FileRepresentation {
+  static func determineType(of location: URL) throws -> FileRepresentation {
     if location.hasDirectoryPath {
       return FileRepresentation(icon: "📁", color: TerminalColors.blue.rawValue)
     }
@@ -37,7 +37,7 @@ class FileManagerHelper {
     if fm.isExecutableFile(atPath: location.path) {
       return FileRepresentation(icon: "⚙️ ", color: TerminalColors.red.rawValue)
     }
-    
+
     let attributes = try fm.attributesOfItem(atPath: location.path)
     if let fileType = attributes[FileAttributeKey.type] as? FileAttributeType {
       if fileType == .typeSymbolicLink {
@@ -45,21 +45,16 @@ class FileManagerHelper {
       }
     }
 
-
     return FileRepresentation(icon: "📃", color: TerminalColors.white.rawValue)
   }
 
   static func getFileAttributes(at location: URL, with opts: DisplayOptions) throws -> String {
     let attributes = try fm.attributesOfItem(atPath: location.path)
-    let file = try determineType(location)
+    var file: FileRepresentation? = opts.color || opts.icons ? try determineType(of: location) : nil
     var attributesString = ""
 
-    if opts.color || opts.icons {
-      let file = determineType(of: location)
-    }
-
-    if opts.icons {
-      attributesString.append(file.icon + " ")
+    if file != nil {
+      attributesString.append(file!.icon + " ")
     }
 
     if opts.long {
@@ -76,8 +71,8 @@ class FileManagerHelper {
       }
     }
 
-    if opts.color {
-      attributesString.append(file.color)
+    if file != nil {
+      attributesString.append(file!.color)
       attributesString.append(location.lastPathComponent)
       attributesString.append(TerminalColors.reset.rawValue)
     } else {
@@ -113,8 +108,10 @@ class FileManagerHelper {
 
       for url in contents {
         if url.hasDirectoryPath {
-          result.append("\n\(opts.icons ? "📁 " : "./")\(url.lastPathComponent):\n")
-          let newOpts = opts
+          if #available(macOS 13.0, *) {
+            result.append("\n\(opts.icons ? "📁 " : "")\(url.relativePath):\n")
+          }
+          var newOpts = opts
           newOpts.location = url
           result.append(try findContents(with: newOpts))
         }

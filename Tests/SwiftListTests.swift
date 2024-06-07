@@ -1,5 +1,6 @@
 import ArgumentParser
 import XCTest
+
 @testable import sls
 
 final class SwiftListTests: XCTestCase {
@@ -44,6 +45,14 @@ final class SwiftListTests: XCTestCase {
         "import Foundation\n let name = \"Mac\"\n for _ in 1...5 {\n print(\"Hello, \\(name)\")\n sleep(1)\n }"
         .data(using: .utf8)
     )
+
+    let linkedFile = testDir.appendingPathComponent("linkedFile")
+    FileManagerHelper.fm.createFile(
+      atPath: linkedFile.path,
+      contents: "Linked file content".data(using: .utf8)
+    )
+
+    try FileManagerHelper.fm.createSymbolicLink(at: tempDir.appendingPathComponent(linkedFile.lastPathComponent), withDestinationURL: linkedFile)
   }
 
   // Removes tempDir
@@ -175,8 +184,8 @@ final class SwiftListTests: XCTestCase {
         oneLine: false
       )
     )
-
-    XCTAssertTrue(result.contains("./testDir:"))
+    
+    XCTAssertTrue(result.contains("testDir:"))
     XCTAssertTrue(result.contains("hello.swift"))
   }
 
@@ -197,6 +206,7 @@ final class SwiftListTests: XCTestCase {
     XCTAssertTrue(result.contains("[0;37m"))
     XCTAssertTrue(result.contains("[0;31m"))
     XCTAssertTrue(result.contains("[0;34m"))
+    XCTAssertTrue(result.contains("[0;33m"))
   }
 
   // Lists files at specified directory with --icons flag
