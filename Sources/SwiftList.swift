@@ -53,7 +53,7 @@ class FileManagerHelper {
     let fileRepresentation: FileRepresentation? = opts.color || opts.icons ? try determineType(of: location) : nil
     var attributesString = ""
 
-    if fileRepresentation != nil {
+    if opts.icons {
       attributesString.append(fileRepresentation!.icon + " ")
     }
 
@@ -71,7 +71,7 @@ class FileManagerHelper {
       }
     }
 
-    if fileRepresentation != nil {
+    if opts.color {
       attributesString.append(fileRepresentation!.color)
       attributesString.append(location.lastPathComponent)
       attributesString.append(TerminalColors.reset.rawValue)
