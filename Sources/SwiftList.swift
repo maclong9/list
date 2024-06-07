@@ -108,9 +108,7 @@ class FileManagerHelper {
 
       for url in contents {
         if url.hasDirectoryPath {
-          if #available(macOS 13.0, *) {
-            result.append("\n\(opts.icons ? "📁 " : "")\(url.relativePath):\n")
-          }
+          result.append("\n\(opts.icons ? "📁 " : "")\(url.relativePath):\n")
           var newOpts = opts
           newOpts.location = url
           result.append(try findContents(with: newOpts))
