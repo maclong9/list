@@ -18,6 +18,7 @@ struct DisplayOptions {
 
 enum TerminalColors: String {
   case white = "\u{001B}[0;37m"
+  case yellow = "\u{001B}[0;33m"
   case red = "\u{001B}[0;31m"
   case blue = "\u{001B}[0;34m"
   case reset = "\u{001B}[0;0m"
@@ -28,7 +29,7 @@ let files = FileManager.default
 class FileManagerHelper {
   static let fm = FileManager.default
 
-  static func determineType(_ location: URL) -> FileRepresentation {
+  static func determineType(_ location: URL) throws -> FileRepresentation {
     if location.hasDirectoryPath {
       return FileRepresentation(icon: "📁", color: TerminalColors.blue.rawValue)
     }
@@ -36,13 +37,21 @@ class FileManagerHelper {
     if fm.isExecutableFile(atPath: location.path) {
       return FileRepresentation(icon: "⚙️ ", color: TerminalColors.red.rawValue)
     }
+    
+    let attributes = try fm.attributesOfItem(atPath: location.path)
+    if let fileType = attributes[FileAttributeKey.type] as? FileAttributeType {
+      if fileType == .typeSymbolicLink {
+        return FileRepresentation(icon: "🔗", color: TerminalColors.yellow.rawValue)
+      }
+    }
+
 
     return FileRepresentation(icon: "📃", color: TerminalColors.white.rawValue)
   }
 
   static func getFileAttributes(_ location: URL, with opts: DisplayOptions) throws -> String {
     let attributes = try fm.attributesOfItem(atPath: location.path)
-    let file = determineType(location)
+    let file = try determineType(location)
     var attributesString = ""
 
     if opts.icons {
