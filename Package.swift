@@ -3,6 +3,12 @@ import PackageDescription
 
 let package = Package(
   name: "sls",
+  products: [
+    .executable(
+      name: "sls",
+      targets: ["sls"]
+    )
+  ],
   dependencies: [
     .package(
       url: "https://github.com/apple/swift-argument-parser",
