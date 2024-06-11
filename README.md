@@ -4,14 +4,6 @@
 
 A simple rebuild of the `ls` UNIX command in Swift.
 
-## Install
-
-### With Mint
-
-``` sh
-mint install maclong9/SwiftList
-```
-
 ## Usage
 
 ``` sh
