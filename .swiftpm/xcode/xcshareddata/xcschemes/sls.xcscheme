@@ -69,10 +69,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-alrcio"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/mac/.config"
+            argument = "-c"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
