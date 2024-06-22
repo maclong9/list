@@ -4,6 +4,16 @@
 
 A __simple__ and __fast__ rebuild of the UNIX `ls` command.
 
+## Installation 
+
+``` sh
+sudo curl -L -o /usr/local/bin/sls https://github.com/maclong9/swift-list/releases/download/v1.0.3/sls
+sudo chmod +x /usr/local/bin/sls
+```
+
+> [!NOTE]
+> You can also clone the repository and build the package yourself before moving to your executables.
+
 ## Usage
 
 ``` sh
