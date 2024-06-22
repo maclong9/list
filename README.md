@@ -1,6 +1,6 @@
 # SwiftList
 
-[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fmaclong9%2FSwiftList%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/maclong9/SwiftList)
+ [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fmaclong9%2Fswift-list%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/maclong9/swift-list)
 
 A simple rebuild of the `ls` UNIX command in Swift.
 
@@ -19,3 +19,11 @@ sls [--all] [--long] [--recurse] [--color] [--icons] [--one-line] [<path>]
 - `-i, --icons`:             Display icons denoting file type.
 - `-o, --one-line`:          Display each file on its own line.
 - `-h, --help`:              Show help information.
+
+### Recommended Options
+
+These options provide the best readability while still giving detailed information.
+
+``` sh
+sls -cli [-ra] [<path>]
+```
