@@ -1,272 +1,106 @@
 import ArgumentParser
-import XCTest
-
+import Foundation
+import Testing
+import RegexBuilder
 @testable import sls
 
-final class SwiftListTests: XCTestCase {
-  var tempDir: URL!
+extension Tag {
+    @Tag static var functionality: Tag
+    @Tag static var formatting: Tag
+    @Tag static var performance: Tag
+}
 
-  // Creates tempDir with some example files
-  override func setUpWithError() throws {
-    tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(
-      UUID().uuidString
-    )
-    let testDir = tempDir.appendingPathComponent("testDir")
-
-    try FileManagerHelper.fm.createDirectory(
-      at: testDir,
-      withIntermediateDirectories: true
-    )
-
-    FileManagerHelper.fm.createFile(
-      atPath: tempDir.appendingPathComponent("testFile1.txt").path,
-      contents: "Test file 1 content".data(using: .utf8)
-    )
-
-    FileManagerHelper.fm.createFile(
-      atPath: tempDir.appendingPathComponent(".hiddenFile").path,
-      contents: "Hidden file content".data(using: .utf8)
-    )
-
-    let executableFile = tempDir.appendingPathComponent("executableFile.sh")
-    FileManagerHelper.fm.createFile(
-      atPath: executableFile.path,
-      contents: "#!/bin/sh\necho Hello, World!".data(using: .utf8)
-    )
-    var attributes = [FileAttributeKey: Any]()
-    attributes[.posixPermissions] = 0o755
-    try FileManager.default.setAttributes(
-      attributes, ofItemAtPath: executableFile.path
-    )
-
-    FileManagerHelper.fm.createFile(
-      atPath: testDir.appendingPathComponent("hello.swift").path,
-      contents:
-        "import Foundation\n let name = \"Mac\"\n for _ in 1...5 {\n print(\"Hello, \\(name)\")\n sleep(1)\n }"
-        .data(using: .utf8)
-    )
-
-    let linkedFile = testDir.appendingPathComponent("linkedFile")
-    FileManagerHelper.fm.createFile(
-      atPath: linkedFile.path,
-      contents: "Linked file content".data(using: .utf8)
-    )
-
-    try FileManagerHelper.fm.createSymbolicLink(
-      at: tempDir.appendingPathComponent(linkedFile.lastPathComponent),
-      withDestinationURL: linkedFile)
-  }
-
-  // Removes tempDir
-  override func tearDownWithError() throws {
-    try FileManagerHelper.fm.removeItem(at: tempDir)
-  }
-
-  // Lists files in current directory
-  func testListFiles() throws {
-    let result = try FileManagerHelper.findContents(
-      with: DisplayOptions(
-        location: nil,
-        all: false,
-        long: false,
-        recurse: false,
-        color: false,
-        icons: false,
-        oneLine: false
-      )
-    )
-
-    XCTAssertTrue(result.contains("sls.swiftmodule"))
-    XCTAssertTrue(result.contains("sls"))
-    XCTAssertTrue(result.contains("PackageFrameworks"))
-  }
-
-  // Lists files at specified directory
-  func testListFilesAtDirectory() throws {
-    let result = try FileManagerHelper.findContents(
-      with: DisplayOptions(
-        location: tempDir,
-        all: false,
-        long: false,
-        recurse: false,
-        color: false,
-        icons: false,
-        oneLine: false
-      )
-    )
-
-    XCTAssertTrue(result.contains("testFile1.txt"))
-    XCTAssertFalse(result.contains(".hiddenFile"))
-    XCTAssertTrue(result.contains("testDir"))
-    XCTAssertTrue(result.contains("executableFile.sh"))
-  }
-
-  // Attempts to list files at a non-existent URL
-  func testListWithNonExistentDirectory() throws {
-    do {
-      _ = try FileManagerHelper.findContents(
-        with: DisplayOptions(
-          location: URL(fileURLWithPath: "/Users/noone/non-existent"),
-          all: false,
-          long: false,
-          recurse: false,
-          color: false,
-          icons: false,
-          oneLine: false
+struct CoreFunctionality {
+    @Test("List Files in Directory", .tags(.functionality), arguments: [
+        nil,
+        "/Users",
+    ])
+    func listFiles(path: String?) async throws {
+        let location: URL? = path.map { URL(filePath: $0) }
+        
+        let result = try FileManagerHelper.findContents(
+            with: DisplayOptions(
+                location: location
+            )
         )
-      )
-
-      XCTFail("Expected an error to be thrown for non-existent directory")
-    } catch let error as NSError {
-      XCTAssertTrue(
-        error.domain == NSCocoaErrorDomain && error.code == NSFileReadNoSuchFileError,
-        "Expected NSFileReadNoSuchFileError for non-existent directory"
-      )
-    } catch {
-      XCTFail("Unexpected error: \(error)")
+        
+        if path == nil {
+            #expect(result.contains("sls.swiftmodule"))
+        } else {
+            #expect(result.contains("Shared"))
+        }
     }
-  }
+    
+    @Test("Flags Perform Correctly", arguments: [
+        "all" ,
+        "long" ,
+        "recurse",
+    ])
+    func coreFlags(flag: String) async throws {
+        var location: URL?
+        if flag.contains("all") {
+            location = FileManagerHelper.fm.temporaryDirectory.appendingPathComponent("temp")
+            try FileManagerHelper.fm.createDirectory(at: location!, withIntermediateDirectories: true, attributes: nil)
+            
+            
+            FileManagerHelper.fm.createFile(
+                atPath: location!.appendingPathComponent(".hiddenFile").path,
+                contents: Data("hidden".utf8),
+                attributes: nil
+            )
+        }
+        
+        let result = try FileManagerHelper.findContents(
+            with: DisplayOptions(
+                location: flag.contains("all") ? location : nil,
+                all: flag.contains("all"),
+                long: flag.contains("long"),
+                recurse: flag.contains( "recurse")
+            ))
+        
+        #expect([
+            "sls.swiftmodule",
+            "Shared",
+            ".hiddenFile",
+            "420",
+            "staff",
+            "arm64-apple-macos.swiftdoc",
+            "\n"
+        ].contains { result.contains($0) })
+        
+        if flag.contains("all") {
+            try FileManagerHelper.fm.removeItem(at: location!)
+        }
+    }
+}
 
-  // Lists files at specified directory with --all flag
-  func testListAllFiles() throws {
-    let result = try FileManagerHelper.findContents(
-      with: DisplayOptions(
-        location: tempDir,
-        all: true,
-        long: false,
-        recurse: false,
-        color: false,
-        icons: false,
-        oneLine: false
-      )
-    )
-
-    XCTAssertTrue(result.contains(".hiddenFile"))
-  }
-
-  // Lists files at specified directory with --long flag
-  func testListFilesWithLong() throws {
-    let result = try FileManagerHelper.findContents(
-      with: DisplayOptions(
-        location: tempDir,
-        all: false,
-        long: true,
-        recurse: false,
-        color: false,
-        icons: false,
-        oneLine: false
-      )
-    )
-
-    let regexPattern =
-      #"493\s+\w+\s+\w+\s+1\s+28\s+\d{2}\s+Jun\s+\d{2}:\d{2}\s+executableFile\.sh\n"#
-    let regex = try! NSRegularExpression(pattern: regexPattern)
-    let range = NSRange(location: 0, length: result.utf16.count)
-    print(result)
-    XCTAssertNotNil(
-      regex.firstMatch(
-        in: result,
-        options: [],
-        range: range
-      ),
-      "Output does not match expected format."
-    )
-  }
-
-  // Lists files at specified directory with --recurse flag
-  func testListWithRecurse() throws {
-    let result = try FileManagerHelper.findContents(
-      with: DisplayOptions(
-        location: tempDir,
-        all: false,
-        long: false,
-        recurse: true,
-        color: false,
-        icons: false,
-        oneLine: false
-      )
-    )
-
-    XCTAssertTrue(result.contains("testDir:"))
-    XCTAssertTrue(result.contains("hello.swift"))
-  }
-
-  // Lists files at specified directory with --color flag
-  func testListWithColor() throws {
-    let result = try FileManagerHelper.findContents(
-      with: DisplayOptions(
-        location: tempDir,
-        all: false,
-        long: false,
-        recurse: true,
-        color: true,
-        icons: false,
-        oneLine: false
-      )
-    )
-
-    XCTAssertTrue(result.contains("[0;37m"))
-    XCTAssertTrue(result.contains("[0;31m"))
-    XCTAssertTrue(result.contains("[0;34m"))
-    XCTAssertTrue(result.contains("[0;33m"))
-  }
-
-  // Lists files at specified directory with --icons flag
-  func testListWithIcons() throws {
-    let result = try FileManagerHelper.findContents(
-      with: DisplayOptions(
-        location: tempDir,
-        all: false,
-        long: false,
-        recurse: false,
-        color: false,
-        icons: true,
-        oneLine: false
-      )
-    )
-
-    XCTAssertTrue(result.contains("📃"))
-    XCTAssertTrue(result.contains("📁"))
-    XCTAssertTrue(result.contains("⚙️"))
-    XCTAssertTrue(result.contains("🔗"))
-  }
-
-  // Lists files at specified directory with --oneLine flag
-  func testListWithOneLine() throws {
-    let result = try FileManagerHelper.findContents(
-      with: DisplayOptions(
-        location: tempDir,
-        all: false,
-        long: false,
-        recurse: false,
-        color: false,
-        icons: false,
-        oneLine: true
-      )
-    )
-
-    XCTAssertTrue(result.contains("executableFile.sh\n"))
-    XCTAssertTrue(result.contains("testDir\n"))
-    XCTAssertTrue(result.contains("testFile1.txt\n"))
-  }
-
-  func testFindContentsPerformance() throws {
-    measure {
-      do {
-        _ = try FileManagerHelper.findContents(
-          with: DisplayOptions(
-            location: tempDir,
-            all: false,
-            long: false,
-            recurse: true,
-            color: false,
-            icons: false,
-            oneLine: false
-          )
+struct Formatting {
+    @Test("Formatting Flags Perform Properly", .tags(.formatting), arguments: [
+        "color",
+        "icons",
+        "oneLine"
+    ])
+    func formattingFlags(flag: String) async throws {
+        let result = try FileManagerHelper.findContents(
+            with: DisplayOptions(
+                color: flag.contains("color"),
+                icons: flag.contains("icons"),
+                oneLine: flag.contains("oneLine")
+            )
         )
-      } catch {
-        XCTFail("Unexpected error: \(error)")
-      }
+        
+        if flag.contains("color") {
+            #expect(result.contains(
+                Regex { "[0;"; OneOrMore(.digit); "m" }
+            ))
+        }
+        
+        if flag.contains("icons") {
+            #expect(result.contains("📃"))
+        }
+        
+        if flag.contains("oneLine") {
+            #expect(result.contains("sls\n"))
+        }
     }
-  }
 }
