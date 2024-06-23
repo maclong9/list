@@ -58,18 +58,18 @@ struct CoreFunctionality {
                 recurse: flag.contains( "recurse")
             ))
         
-        #expect([
-            "sls.swiftmodule",
-            "Shared",
-            ".hiddenFile",
-            "420",
-            "staff",
-            "arm64-apple-macos.swiftdoc",
-            "\n"
-        ].contains { result.contains($0) })
-        
         if flag.contains("all") {
+            #expect(result.contains(".hiddenFile"))
             try FileManagerHelper.fm.removeItem(at: location!)
+            
+        }
+        
+        if flag.contains("long") {
+            #expect(result.contains("staff"))
+        }
+        
+        if flag.contains("recurse") {
+            #expect(result.contains("arm64-apple-macos.swiftdoc"))
         }
     }
 }
