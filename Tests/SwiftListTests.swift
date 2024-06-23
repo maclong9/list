@@ -1,4 +1,3 @@
-import ArgumentParser
 import Foundation
 import Testing
 import RegexBuilder
@@ -7,7 +6,6 @@ import RegexBuilder
 extension Tag {
     @Tag static var functionality: Tag
     @Tag static var formatting: Tag
-    @Tag static var performance: Tag
 }
 
 struct CoreFunctionality {
