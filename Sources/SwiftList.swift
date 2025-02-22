@@ -59,7 +59,7 @@ class FileManagerHelper {
       }
     }
 
-    return FileRepresentation(icon: "📃", color: TerminalColors.white.rawValue)
+    return FileRepresentation(icon: "📄", color: TerminalColors.white.rawValue)
   }
 
   /// Retrieves and formats file attributes for display.
