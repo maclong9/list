@@ -1,11 +1,13 @@
 import ArgumentParser
 import Foundation
 
+/// Represents a file with an icon and color coding.
 struct FileRepresentation {
   let icon: String
   let color: String
 }
 
+/// Stores display options for listing files.
 struct DisplayOptions {
   var location: URL?
   var all = false
@@ -16,6 +18,7 @@ struct DisplayOptions {
   var oneLine = false
 }
 
+/// Enum defining terminal color codes.
 enum TerminalColors: String {
   case white = "\u{001B}[0;37m"
   case yellow = "\u{001B}[0;33m"
@@ -24,10 +27,15 @@ enum TerminalColors: String {
   case reset = "\u{001B}[0;0m"
 }
 
+/// A helper class to manage file system operations.
 class FileManagerHelper {
-  static var fm: FileManager {
-    FileManager()
-  }
+  /// Returns a `FileManager` instance.
+  static var fm: FileManager { FileManager() }
+
+  /// Determines the type of a file at the specified location.
+  /// - Parameter location: The URL of the file.
+  /// - Throws: An error if the file attributes cannot be retrieved.
+  /// - Returns: A `FileRepresentation` describing the file.
   static func determineType(of location: URL) throws -> FileRepresentation {
     if location.hasDirectoryPath {
       return FileRepresentation(
@@ -40,19 +48,22 @@ class FileManagerHelper {
     }
 
     let attributes = try fm.attributesOfItem(atPath: location.path)
-    if let fileType = attributes[FileAttributeKey.type]
-      as? FileAttributeType
+    if let fileType = attributes[FileAttributeKey.type] as? FileAttributeType,
+      fileType == .typeSymbolicLink
     {
-      if fileType == .typeSymbolicLink {
-        return FileRepresentation(
-          icon: "🔗", color: TerminalColors.yellow.rawValue)
-      }
+      return FileRepresentation(
+        icon: "🔗", color: TerminalColors.yellow.rawValue)
     }
 
-    return FileRepresentation(
-      icon: "📃", color: TerminalColors.white.rawValue)
+    return FileRepresentation(icon: "📃", color: TerminalColors.white.rawValue)
   }
 
+  /// Retrieves file attributes formatted for display.
+  /// - Parameters:
+  ///   - location: The file URL.
+  ///   - opts: The display options.
+  /// - Throws: An error if file attributes cannot be retrieved.
+  /// - Returns: A formatted string of file attributes.
   static func getFileAttributes(at location: URL, with opts: DisplayOptions)
     throws -> String
   {
@@ -73,8 +84,7 @@ class FileManagerHelper {
       attributesString.append(
         attributes[.groupOwnerAccountName] as! String + " ")
       attributesString.append(
-        String(format: "%-2d", attributes[.referenceCount] as! Int)
-          + " ")
+        String(format: "%-2d", attributes[.referenceCount] as! Int) + " ")
       attributesString.append(
         String(format: "%-5d", attributes[.size] as! Int) + " ")
 
@@ -103,6 +113,10 @@ class FileManagerHelper {
     return attributesString
   }
 
+  /// Retrieves and formats the contents of a directory.
+  /// - Parameter opts: The display options.
+  /// - Throws: An error if the directory contents cannot be retrieved.
+  /// - Returns: A formatted string listing the directory contents.
   static func findContents(with opts: DisplayOptions) throws -> String {
     var result = ""
 
@@ -121,13 +135,11 @@ class FileManagerHelper {
         result.append("\n")
       }
 
-      for url in contents {
-        if url.hasDirectoryPath {
-          result.append("\n\(url.relativePath):\n")
-          var newOpts = opts
-          newOpts.location = url
-          result.append(try findContents(with: newOpts))
-        }
+      for url in contents where url.hasDirectoryPath {
+        result.append("\n\(url.relativePath):\n")
+        var newOpts = opts
+        newOpts.location = url
+        result.append(try findContents(with: newOpts))
       }
     }
 
@@ -139,20 +151,27 @@ class FileManagerHelper {
 struct sls: ParsableCommand {
   @Flag(name: .shortAndLong, help: "Display all files, including hidden.")
   var all = false
-  @Flag(
-    name: .shortAndLong, help: "Display file attributes, one file per line")
+
+  @Flag(name: .shortAndLong, help: "Display file attributes, one file per line")
   var long = false
+
   @Flag(name: .shortAndLong, help: "Recurse into directories.")
   var recurse = false
+
   @Flag(name: .shortAndLong, help: "Colorize the output.")
   var color = false
+
   @Flag(name: .shortAndLong, help: "Display icons denoting file type.")
   var icons = false
+
   @Flag(name: .shortAndLong, help: "Display each file on its own line.")
   var oneLine = false
+
   @Argument(help: "List files at path, omit for current directory.")
   var path: String?
 
+  /// Executes the command with the specified options.
+  /// - Throws: An error if listing files fails.
   func run() throws {
     print(
       try FileManagerHelper.findContents(
