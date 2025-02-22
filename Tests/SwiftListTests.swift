@@ -119,7 +119,7 @@ struct Formatting {
     }
 
     if flag.contains("icons") {
-      #expect(result.contains("📃"))
+      #expect(result.contains("📄"))
     }
 
     if flag.contains("oneLine") {
