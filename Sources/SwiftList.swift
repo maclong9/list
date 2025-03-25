@@ -42,7 +42,11 @@ class FileManagerHelper {
   ///   - location: The file URL.
   ///   - attributes: The file attributes.
   /// - Returns: A `FileRepresentation` object containing the icon and color.
-  static func determineType(of location: URL, attributes: [FileAttributeKey: Any]) -> FileRepresentation {
+  static func determineType(
+    of location: URL, attributes: [FileAttributeKey: Any]
+  )
+    -> FileRepresentation
+  {
     if location.hasDirectoryPath {
       return FileRepresentation(icon: "📁", color: TerminalColors.blue.rawValue)
     }
@@ -70,7 +74,8 @@ class FileManagerHelper {
   /// - Returns: A formatted string of file attributes.
   static func getFileAttributes(at location: URL, with opts: DisplayOptions) throws -> String {
     let attributes = try fm.attributesOfItem(atPath: location.path)
-    let fileRepresentation = (opts.color || opts.icons) ? determineType(of: location, attributes: attributes) : nil
+    let fileRepresentation =
+      (opts.color || opts.icons) ? determineType(of: location, attributes: attributes) : nil
     var attributesString = ""
 
     if let fileRep = fileRepresentation, opts.icons {
