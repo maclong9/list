@@ -179,24 +179,38 @@ struct sls: ParsableCommand {
   @Flag(name: .shortAndLong, help: "Display each file on its own line.")
   var oneLine = false
 
-  @Argument(help: "List files at path, omit for current directory.")
-  var path: String?
+  @Argument(help: "List files at one or more paths, omit for current directory.")
+  var paths: [String] = []
 
   /// Executes the command with the specified options.
   /// - Throws: An error if listing files fails.
   func run() throws {
-    print(
-      try FileManagerHelper.findContents(
-        with: DisplayOptions(
-          location: path != nil ? URL(fileURLWithPath: path!) : nil,
-          all: all,
-          long: long,
-          recurse: recurse,
-          color: color,
-          icons: icons,
-          oneLine: oneLine
-        )
-      )
+    let options = DisplayOptions(
+      all: all,
+      long: long,
+      recurse: recurse,
+      color: color,
+      icons: icons,
+      oneLine: oneLine,
+      sortBy: .name
     )
+
+    if paths.isEmpty {
+      var opts = options
+      opts.location = URL(fileURLWithPath: FileManager().currentDirectoryPath)
+      print(try FileManagerHelper.findContents(with: opts))
+    } else {
+      for (index, path) in paths.enumerated() {
+        var opts = options
+        opts.location = URL(fileURLWithPath: path)
+        if paths.count > 1 {
+          if index > 0 {
+            print()
+          }
+          print("\(path):")
+        }
+        print(try FileManagerHelper.findContents(with: opts))
+      }
+    }
   }
 }
