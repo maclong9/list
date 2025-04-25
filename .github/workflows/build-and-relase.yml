@@ -45,14 +45,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y binutils
 
-      # Generate version tag
-      - name: Generate version tag
-        id: version
-        run: |
-          # Use commit SHA or increment version based on existing tags
-          VERSION="v1.3.3"  # Replace with dynamic versioning if needed
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
       # Build the executable
       - name: Build executable
         run: |
@@ -113,25 +105,66 @@ jobs:
         with:
           path: artifacts
 
+      # Generate version tag
+      - name: Generate version tag
+        id: version
+        run: |
+          # Use commit SHA or increment version based on existing tags
+          VERSION="v1.3.3"  # Replace with dynamic versioning if needed
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       # Create and push git tag
       - name: Create and push git tag
         run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
-          git tag ${{ needs.build-and-release.outputs.version }}
-          git push origin ${{ needs.build-and-release.outputs.version }}
+          git tag ${{ steps.version.outputs.version }}
+          git push origin ${{ steps.version.outputs.version }}
 
       # Create GitHub release
       - name: Create GitHub release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=${{ needs.build-and-release.outputs.version }}
-          gh release create "$VERSION" \
-            --title "$VERSION" \
-            --notes "Release for sls" \
-            artifacts/sls-macos-aarch64/sls_macos_aarch64 \
-            artifacts/sls-macos-x86_64/sls_macos_x86_64 \
-            artifacts/sls-linux-aarch64/sls_linux_aarch64 \
-            artifacts/sls-linux-x86_64/sls_linux_x86_64
-        uses: softprops/action-gh-release@v1
+          VERSION=${{ steps.version.outputs.version }}
+          REPO=${{ github.repository }}
+
+          # Create release
+          RELEASE_DATA=$(cat <<EOF
+          {
+            "tag_name": "$VERSION",
+            "name": "$VERSION",
+            "body": "Release for sls",
+            "draft": false,
+            "prerelease": false
+          }
+          EOF
+          )
+
+          RELEASE_RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -X POST "https://api.github.com/repos/$REPO/releases" \
+            -d "$RELEASE_DATA")
+
+          # Extract upload_url
+          UPLOAD_URL=$(echo "$RELEASE_RESPONSE" | grep -o '"upload_url": "[^"]*' | cut -d'"' -f4 | sed 's/{?name,label}//')
+
+          if [[ -z "$UPLOAD_URL" ]]; then
+            echo "Failed to create release"
+            echo "Response: $RELEASE_RESPONSE"
+            exit 1
+          fi
+
+          # Upload binaries
+          for BINARY in artifacts/sls-macos-aarch64/sls_macos_aarch64 \
+                        artifacts/sls-macos-x86_64/sls_macos_x86_64 \
+                        artifacts/sls-linux-aarch64/sls_linux_aarch64 \
+                        artifacts/sls-linux-x86_64/sls_linux_x86_64; do
+            BINARY_NAME=$(basename "$BINARY")
+            echo "Uploading $BINARY_NAME..."
+            curl -s -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary @"$BINARY" \
+              "$UPLOAD_URL?name=$BINARY_NAME"
+          done
