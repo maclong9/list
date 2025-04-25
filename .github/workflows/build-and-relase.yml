@@ -23,20 +23,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Install Swift (macOS)
-      - name: Install Swift (macOS)
+      # Set up Xcode with Swift 6.0.0 (macOS)
+      - name: Select Xcode 16.0 (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          brew install swift
+          sudo xcode-select -s /Applications/Xcode_16.0.app
+          swift --version
 
-      # Install Swift (Linux)
-      - name: Install Swift (Linux)
+      # Install Swift 6.0.0 (Linux)
+      - name: Install Swift 6.0.0 (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          wget https://download.swift.org/swift-5.10-release/ubuntu2204/swift-5.10-RELEASE/swift-5.10-RELEASE-ubuntu22.04.tar.gz
-          tar xzf swift-5.10-RELEASE-ubuntu22.04.tar.gz
-          sudo mv swift-5.10-RELEASE-ubuntu22.04 /usr/share/swift
+          wget https://download.swift.org/swift-6.0-release/ubuntu2204/swift-6.0-RELEASE/swift-6.0-RELEASE-ubuntu22.04.tar.gz
+          tar xzf swift-6.0-RELEASE-ubuntu22.04.tar.gz
+          sudo mv swift-6.0-RELEASE-ubuntu22.04 /usr/share/swift
           echo "/usr/share/swift/usr/bin" >> $GITHUB_PATH
+          swift --version
 
       # Install binutils for strip (Linux)
       - name: Install binutils (Linux)
