@@ -1,0 +1,137 @@
+name: Build and Release SLS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        architecture: [aarch64, x86_64]
+        include:
+          - os: macos-latest
+            platform: macos
+          - os: ubuntu-latest
+            platform: linux
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Install Swift (macOS)
+      - name: Install Swift (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install swift
+
+      # Install Swift (Linux)
+      - name: Install Swift (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          wget https://download.swift.org/swift-5.10-release/ubuntu2204/swift-5.10-RELEASE/swift-5.10-RELEASE-ubuntu22.04.tar.gz
+          tar xzf swift-5.10-RELEASE-ubuntu22.04.tar.gz
+          sudo mv swift-5.10-RELEASE-ubuntu22.04 /usr/share/swift
+          echo "/usr/share/swift/usr/bin" >> $GITHUB_PATH
+
+      # Install binutils for strip (Linux)
+      - name: Install binutils (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y binutils
+
+      # Generate version tag
+      - name: Generate version tag
+        id: version
+        run: |
+          # Use commit SHA or increment version based on existing tags
+          VERSION="v1.3.3"  # Replace with dynamic versioning if needed
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # Build the executable
+      - name: Build executable
+        run: |
+          EXECUTABLE_NAME="sls"
+          OUTPUT_DIR="build_output"
+          OUTPUT_BINARY="$OUTPUT_DIR/${EXECUTABLE_NAME}_${{ matrix.platform }}_${{ matrix.architecture }}"
+          mkdir -p "$OUTPUT_DIR"
+
+          if [[ "${{ matrix.platform }}" == "macos" ]]; then
+            if [[ "${{ matrix.architecture }}" == "aarch64" ]]; then
+              swift build --arch arm64 -c release
+              BUILD_OUTPUT_PATH=".build/arm64-apple-macosx/release/$EXECUTABLE_NAME"
+            else
+              swift build --arch x86_64 -c release
+              BUILD_OUTPUT_PATH=".build/x86_64-apple-macosx/release/$EXECUTABLE_NAME"
+            fi
+          elif [[ "${{ matrix.platform }}" == "linux" ]]; then
+            if [[ "${{ matrix.architecture }}" == "aarch64" ]]; then
+              swift build --swift-sdk aarch64-swift-linux-musl -c release -Xswiftc -Osize -Xcc -w
+              BUILD_OUTPUT_PATH=".build/aarch64-swift-linux-musl/release/$EXECUTABLE_NAME"
+            else
+              swift build --swift-sdk x86_64-swift-linux-musl -c release -Xswiftc -Osize -Xcc -w
+              BUILD_OUTPUT_PATH=".build/x86_64-swift-linux-musl/release/$EXECUTABLE_NAME"
+            fi
+          fi
+
+          if [[ -f "$BUILD_OUTPUT_PATH" ]]; then
+            mv "$BUILD_OUTPUT_PATH" "$OUTPUT_BINARY"
+            chmod +x "$OUTPUT_BINARY"
+            if [[ "${{ matrix.platform }}" == "linux" ]]; then
+              strip "$OUTPUT_BINARY"
+              echo "Stripped debugging symbols from $OUTPUT_BINARY"
+            fi
+            echo "Built $OUTPUT_BINARY"
+          else
+            echo "Failed to build for ${{ matrix.architecture }} on ${{ matrix.platform }}: Binary not found at $BUILD_OUTPUT_PATH"
+            exit 1
+          fi
+
+      # Upload binaries as artifacts
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: sls-${{ matrix.platform }}-${{ matrix.architecture }}
+          path: build_output/sls_${{ matrix.platform }}_${{ matrix.architecture }}
+
+  release:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Download all artifacts
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      # Create and push git tag
+      - name: Create and push git tag
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git tag ${{ needs.build-and-release.outputs.version }}
+          git push origin ${{ needs.build-and-release.outputs.version }}
+
+      # Create GitHub release
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${{ needs.build-and-release.outputs.version }}
+          gh release create "$VERSION" \
+            --title "$VERSION" \
+            --notes "Release for sls" \
+            artifacts/sls-macos-aarch64/sls_macos_aarch64 \
+            artifacts/sls-macos-x86_64/sls_macos_x86_64 \
+            artifacts/sls-linux-aarch64/sls_linux_aarch64 \
+            artifacts/sls-linux-x86_64/sls_linux_x86_64
+        uses: softprops/action-gh-release@v1
