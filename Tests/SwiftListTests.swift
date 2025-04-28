@@ -28,7 +28,7 @@ struct CoreFunctionality {
     )
 
     if path == nil {
-      #expect(result.contains("sls.swiftmodule"))
+      #expect(result.contains("Package.swift"))
     } else {
       #expect(result.contains("Shared"))
     }
@@ -82,7 +82,7 @@ struct CoreFunctionality {
     }
 
     if flag.contains("recurse") {
-      #expect(result.contains("arm64-apple-macos.swiftdoc"))
+      #expect(result.contains("SwiftListTests.swift"))
     }
   }
 
@@ -171,7 +171,7 @@ struct Formatting {
     }
 
     if flag.contains("oneLine") {
-      #expect(result.contains("sls\n"))
+      #expect(result.contains("Package.swift\n"))
     }
   }
 }
