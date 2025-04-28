@@ -62,12 +62,6 @@ jobs:
         run: swift test
         continue-on-error: false
 
-      - name: Build release binary
-        run: |
-          swift build -c release
-          BINARY_PATH=$(swift build -c release --show-bin-path)/sls
-          echo "BINARY_PATH=$BINARY_PATH" >> $GITHUB_ENV
-
       - name: Setup GitHub CLI
         run: |
           brew install gh
@@ -85,7 +79,7 @@ jobs:
           if [ -z "$LATEST_TAG" ]; then
             CURRENT_VERSION="0.0.0"
           else
-            CURRENT_VERSION="$LATEST_TAG"
+            CURRENT_VERSION="$LATEST_TAG"  # Use tag as is (e.g., 0.0.0)
           fi
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
 
@@ -94,13 +88,16 @@ jobs:
 
           # Determine version bump based on conventional commits
           if [[ $COMMIT_MESSAGE =~ ^feat!.* ]]; then
+            # Major bump for breaking changes
             MAJOR=$((MAJOR + 1))
             MINOR=0
             PATCH=0
           elif [[ $COMMIT_MESSAGE =~ ^feat:.* ]]; then
+            # Minor bump for features
             MINOR=$((MINOR + 1))
             PATCH=0
           elif [[ $COMMIT_MESSAGE =~ ^fix:.* ]]; then
+            # Patch bump for fixes
             PATCH=$((PATCH + 1))
           else
             echo "No version bump needed (commit: $COMMIT_MESSAGE)"
@@ -129,8 +126,8 @@ jobs:
           fi
           
           # Create and push tag
-          git tag -a "sls" -m "Serverless binary for $NEW_VERSION" -f
-          git push origin "sls" --force
+          git tag -a "$NEW_VERSION" -m "$NEW_VERSION"
+          git push origin "$NEW_VERSION"
 
           # Generate release notes from commit message
           RELEASE_NOTES="Automated release for $NEW_VERSION
@@ -138,17 +135,17 @@ jobs:
           Changes:
           - $COMMIT_MESSAGE"
 
-          # Create or update GitHub release
+          # Create GitHub release
           if [ "$IS_PRERELEASE" = "true" ]; then
-            gh release create "sls" \
+            # Create pre-release for development branch
+            gh release create "$NEW_VERSION" \
               --title "Pre-release $NEW_VERSION" \
               --notes "$RELEASE_NOTES" \
-              --prerelease \
-              "${{ env.BINARY_PATH }}"
+              --prerelease
           else
-            gh release create "sls" \
+            # Create regular release for main branch
+            gh release create "$NEW_VERSION" \
               --title "$NEW_VERSION" \
               --notes "$RELEASE_NOTES" \
-              --latest \
-              "${{ env.BINARY_PATH }}"
+              --latest
           fi
