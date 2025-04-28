@@ -2,7 +2,7 @@
 
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fmaclong9%2Flist%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/maclong9/list)
 
-A __simple__ and __fast__ rebuild of the UNIX `ls` command.
+A __simple__ and __fast__ rebuild of the UNIX `ls` command. 
 
 ## Installation 
 
