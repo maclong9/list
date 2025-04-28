@@ -11,7 +11,7 @@ A __simple__ and __fast__ rebuild of the UNIX `ls` command.
 
 ``` sh
 mkdir /usr/local/bin && sudo curl -L -o /usr/local/bin/sls https://github.com/maclong9/swift-list/releases/download/v1.1.0/sls
-sudo chmod +x /usr/local/bin/sls
+sudo chmod +x /usr/local/bin/sls 
 ```
 
 ### With Mint
