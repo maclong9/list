@@ -111,17 +111,25 @@ jobs:
           
           # Configure git to use GitHub token
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/maclong9/list.git
-          
+      
           # Determine if this is a pre-release (development branch)
           IS_PRERELEASE="false"
           BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
           if [ "$BRANCH_NAME" = "development" ]; then
             IS_PRERELEASE="true"
           fi
-          
+      
+          # Build the Swift binary
+          swift build --configuration release
+          BINARY_PATH=".build/release/list"  # Adjust 'list' to match your executable name in Package.swift
+          if [ ! -f "$BINARY_PATH" ]; then
+            echo "Binary not found at $BINARY_PATH"
+            exit 1
+          fi
+      
           # Create and push tag
-          git tag -a "sls" -m "Serverless binary for $NEW_VERSION" -f
-          git push origin "sls" --force || { echo "Failed to push tag"; exit 1; }
+          git tag -a "v$NEW_VERSION" -m "Release $NEW_VERSION" -f
+          git push origin "v$NEW_VERSION" --force || { echo "Failed to push tag"; exit 1; }
       
           # Generate release notes from commit message
           RELEASE_NOTES="Automated release for $NEW_VERSION
@@ -131,15 +139,15 @@ jobs:
       
           # Create or update GitHub release
           if [ "$IS_PRERELEASE" = "true" ]; then
-            gh release create "sls" \
+            gh release create "v$NEW_VERSION" \
               --title "Pre-release $NEW_VERSION" \
               --notes "$RELEASE_NOTES" \
               --prerelease \
-              "${{ env.BINARY_PATH }}" || { echo "Failed to create pre-release"; exit 1; }
+              "$BINARY_PATH" || { echo "Failed to create pre-release"; exit 1; }
           else
-            gh release create "sls" \
+            gh release create "v$NEW_VERSION" \
               --title "$NEW_VERSION" \
               --notes "$RELEASE_NOTES" \
               --latest \
-              "${{ env.BINARY_PATH }}" || { echo "Failed to create release"; exit 1; }
+              "$BINARY_PATH" || { echo "Failed to create release"; exit 1; }
           fi
