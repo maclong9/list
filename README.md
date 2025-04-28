@@ -43,5 +43,5 @@ sls [--all] [--long] [--recurse] [--color] [--icons] [--one-line] [<path>]
 These options provide the best readability while still giving detailed information.
 
 ``` sh
-sls -cli [-ra] [<path>]
+sls -cli [-ra] [<path>] 
 ```
