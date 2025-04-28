@@ -121,7 +121,7 @@ jobs:
       
           # Build the Swift binary
           swift build --configuration release
-          BINARY_PATH=".build/release/list"  # Adjust 'list' to match your executable name in Package.swift
+          BINARY_PATH=".build/arm64-apple-macosx/release/sls"
           if [ ! -f "$BINARY_PATH" ]; then
             echo "Binary not found at $BINARY_PATH"
             exit 1
