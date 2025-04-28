@@ -33,119 +33,131 @@ jobs:
           fi
 
   release:
-    needs: check-commit
-    if: needs.check-commit.outputs.should_release == 'true'
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 
+  needs: check-commit
+  if: needs.check-commit.outputs.should_release == 'true'
+  runs-on: macos-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 
 
-      - name: Setup Swift
-        uses: swift-actions/setup-swift@v2
-        with:
-          swift-version: "6.1"
+    - name: Setup Swift
+      uses: swift-actions/setup-swift@v2
+      with:
+        swift-version: "6.1"
 
-      - name: Cache SwiftPM dependencies
-        uses: actions/cache@v3
-        with:
-          path: .build
-          key: ${{ runner.os }}-swiftpm-${{ hashFiles('**/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-swiftpm-
+    - name: Cache SwiftPM dependencies
+      uses: actions/cache@v3
+      with:
+        path: .build
+        key: ${{ runner.os }}-swiftpm-${{ hashFiles('**/Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-swiftpm-
 
-      - name: Resolve dependencies
-        run: swift package resolve
+    - name: Resolve dependencies
+      run: swift package resolve
 
-      - name: Run tests
-        run: swift test
-        continue-on-error: false
+    - name: Run tests
+      run: swift test
+      continue-on-error: false
 
-      - name: Setup GitHub CLI
-        run: |
-          brew install gh
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+    - name: Build release binary
+      run: |
+        swift build -c release
+        # Move the binary to a predictable location for release attachment
+        BINARY_NAME=$(swift package describe | grep -i 'name:' | head -1 | awk '{print $2}')
+        cp .build/release/$BINARY_NAME ./$BINARY_NAME
+      env:
+        DEBIAN_FRONTEND: noninteractive
 
-      - name: Bump version and create release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          #!/bin/bash
-          set -e
+    - name: Setup GitHub CLI
+      run: |
+        brew install gh
+        echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
-          # Get the latest version tag (default to 0.0.0 if no tags exist)
-          LATEST_TAG=$(git tag -l '[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
-          if [ -z "$LATEST_TAG" ]; then
-            CURRENT_VERSION="0.0.0"
-          else
-            CURRENT_VERSION="$LATEST_TAG"  # Use tag as is (e.g., 0.0.0)
-          fi
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+    - name: Bump version and create release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        #!/bin/bash
+        set -e
 
-          # Get the latest commit message
-          COMMIT_MESSAGE="${{ needs.check-commit.outputs.commit_message }}"
+        # Get the latest version tag (default to 0.0.0 if no tags exist)
+        LATEST_TAG=$(git tag -l '[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
+        if [ -z "$LATEST_TAG" ]; then
+          CURRENT_VERSION="0.0.0"
+        else
+          CURRENT_VERSION="$LATEST_TAG"
+        fi
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
 
-          # Determine version bump based on conventional commits
-          if [[ $COMMIT_MESSAGE =~ ^feat!.* ]]; then
-            # Major bump for breaking changes
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-          elif [[ $COMMIT_MESSAGE =~ ^feat:.* ]]; then
-            # Minor bump for features
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          elif [[ $COMMIT_MESSAGE =~ ^fix:.* ]]; then
-            # Patch bump for fixes
-            PATCH=$((PATCH + 1))
-          else
-            echo "No version bump needed (commit: $COMMIT_MESSAGE)"
-            exit 0
-          fi
+        # Get the latest commit message
+        COMMIT_MESSAGE="${{ needs.check-commit.outputs.commit_message }}"
 
-          # Form the new version
-          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-          echo "Bumping version from $CURRENT_VERSION to $NEW_VERSION"
+        # Determine version bump based on conventional commits
+        if [[ $COMMIT_MESSAGE =~ ^feat!.* ]]; then
+          # Major bump for breaking changes
+          MAJOR=$((MAJOR + 1))
+          MINOR=0
+          PATCH=0
+        elif [[ $COMMIT_MESSAGE =~ ^feat:.* ]]; then
+          # Minor bump for features
+          MINOR=$((MINOR + 1))
+          PATCH=0
+        elif [[ $COMMIT_MESSAGE =~ ^fix:.* ]]; then
+          # Patch bump for fixes
+          PATCH=$((PATCH + 1))
+        else
+          echo "No version bump needed (commit: $COMMIT_MESSAGE)"
+          exit 0
+        fi
 
-          # Configure git
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          
-          # Configure git to use GitHub token
-          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/maclong9/list.git
-          
-          # Determine if this is a pre-release (development branch)
-          IS_PRERELEASE="false"
-          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
-          if [ "$BRANCH_NAME" = "development" ]; then
-            IS_PRERELEASE="true"
-            git push origin development
-          else
-            git push origin main
-          fi
-          
-          # Create and push tag
-          git tag -a "$NEW_VERSION" -m "$NEW_VERSION"
-          git push origin "$NEW_VERSION"
+        # Form the new version
+        NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+        echo "Bumping version from $CURRENT_VERSION to $NEW_VERSION"
 
-          # Generate release notes from commit message
-          RELEASE_NOTES="Automated release for $NEW_VERSION
-          
-          Changes:
-          - $COMMIT_MESSAGE"
+        # Configure git
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        
+        # Configure git to use GitHub token
+        git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/maclong9/list.git
+        
+        # Determine if this is a pre-release (development branch)
+        IS_PRERELEASE="false"
+        BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+        if [ "$BRANCH_NAME" = "development" ]; then
+          IS_PRERELEASE="true"
+          git push origin development
+        else
+          git push origin main
+        fi
+        
+        # Create and push tag
+        git tag -a "$NEW_VERSION" -m "$NEW_VERSION"
+        git push origin "$NEW_VERSION"
 
-          # Create GitHub release
-          if [ "$IS_PRERELEASE" = "true" ]; then
-            # Create pre-release for development branch
-            gh release create "$NEW_VERSION" \
-              --title "Pre-release $NEW_VERSION" \
-              --notes "$RELEASE_NOTES" \
-              --prerelease
-          else
-            # Create regular release for main branch
-            gh release create "$NEW_VERSION" \
-              --title "$NEW_VERSION" \
-              --notes "$RELEASE_NOTES" \
-              --latest
-          fi
+        # Generate release notes from commit message
+        RELEASE_NOTES="Automated release for $NEW_VERSION
+        
+        Changes:
+        - $COMMIT_MESSAGE"
+
+        # Get the binary name
+        BINARY_NAME=$(swift package describe | grep -i 'name:' | head -1 | awk '{print $2}')
+
+        # Create GitHub release with binary attached
+        if [ "$IS_PRERELEASE" = "true" ]; then
+          # Create pre-release for development branch
+          gh release create "$NEW_VERSION" "./$BINARY_NAME#$BINARY_NAME" \
+            --title "Pre-release $NEW_VERSION" \
+            --notes "$RELEASE_NOTES" \
+            --prerelease
+        else
+          # Create regular release for main branch
+          gh release create "$NEW_VERSION" "./$BINARY_NAME#$BINARY_NAME" \
+            --title "$NEW_VERSION" \
+            --notes "$RELEASE_NOTES" \
+            --latest
+        fi
