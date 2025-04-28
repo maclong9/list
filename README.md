@@ -10,11 +10,14 @@ A __simple__ and __fast__ rebuild of the UNIX `ls` command.
 ### Manually
 
 ``` sh
-mkdir /usr/local/bin && sudo curl -L -o /usr/local/bin/sls https://github.com/maclong9/swift-list/releases/download/v1.1.0/sls
-sudo chmod +x /usr/local/bin/sls 
+sudo mkdir -p /usr/local/bin
+sudo curl -L $(curl -s https://api.github.com/repos/maclong9/list/releases/latest | grep "browser_download_url.*sls" | cut -d\" -f4) -o /usr/local/bin/sls
+sudo chmod +x /usr/local/bin/sls
 ```
 
 ### With Mint
+
+First install [mint](https://github.com/yonaskolb/Mint) then run:
 
 ``` sh
 mint install maclong9/swift-list
