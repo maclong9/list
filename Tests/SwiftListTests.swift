@@ -9,16 +9,16 @@ extension Tag {
   @Tag static var formatting: Tag
 }
 
-struct CoreFunctionality {
+@Suite("SLS Core Tests") struct SLSCoreTests {
   @Test(
-    "List Files in Directory",
+    "Lists files in directory",
     .tags(.functionality),
     arguments: [
       nil,
       "/Users",
     ]
   )
-  func listFiles(path: String?) async throws {
+  func listFilesInDirectory(path: String?) async throws {
     let location: URL? = path.map { URL(fileURLWithPath: $0) }
 
     let result = try FileManagerHelper.findContents(
@@ -35,7 +35,8 @@ struct CoreFunctionality {
   }
 
   @Test(
-    "Flags Perform Correctly",
+    "Core flags perform correctly",
+    .tags(.functionality),
     arguments: [
       "all",
       "long",
@@ -45,7 +46,7 @@ struct CoreFunctionality {
       "sort=size",
     ]
   )
-  func coreFlags(flag: String) async throws {
+  func coreFlagsPerformCorrectly(flag: String) async throws {
     var location: URL?
     if flag.contains("all") {
       location = FileManagerHelper.fm.temporaryDirectory.appendingPathComponent("temp")
@@ -86,7 +87,10 @@ struct CoreFunctionality {
     }
   }
 
-  @Test("List Multiple Paths", .tags(.functionality))
+  @Test(
+    "Lists multiple paths",
+    .tags(.functionality)
+  )
   func listMultiplePaths() async throws {
     let fm = FileManagerHelper.fm
     let tempDir1 = fm.temporaryDirectory.appendingPathComponent("testDir1")
@@ -95,8 +99,16 @@ struct CoreFunctionality {
     try fm.createDirectory(at: tempDir1, withIntermediateDirectories: true, attributes: nil)
     try fm.createDirectory(at: tempDir2, withIntermediateDirectories: true, attributes: nil)
 
-    fm.createFile(atPath: tempDir1.appendingPathComponent("file1.txt").path, contents: Data("file1".utf8), attributes: nil)
-    fm.createFile(atPath: tempDir2.appendingPathComponent("file2.txt").path, contents: Data("file2".utf8), attributes: nil)
+    fm.createFile(
+      atPath: tempDir1.appendingPathComponent("file1.txt").path,
+      contents: Data("file1".utf8),
+      attributes: nil
+    )
+    fm.createFile(
+      atPath: tempDir2.appendingPathComponent("file2.txt").path,
+      contents: Data("file2".utf8),
+      attributes: nil
+    )
 
     let arguments = [tempDir1.path, tempDir2.path]
     let command = try sls.parse(arguments)
@@ -114,30 +126,9 @@ struct CoreFunctionality {
     try fm.removeItem(at: tempDir1)
     try fm.removeItem(at: tempDir2)
   }
-}
 
-// Helper to capture command output
-extension CoreFunctionality {
-  func captureOutput(_ closure: () throws -> Void) throws -> String {
-    let pipe = Pipe()
-    let originalStdout = dup(STDOUT_FILENO)
-    defer { close(originalStdout) }
-
-    dup2(pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO)
-    pipe.fileHandleForWriting.closeFile()
-
-    try closure()
-
-    dup2(originalStdout, STDOUT_FILENO)
-
-    let data = pipe.fileHandleForReading.readDataToEndOfFile()
-    return String(data: data, encoding: .utf8) ?? ""
-  }
-}
-
-struct Formatting {
   @Test(
-    "Formatting Flags Perform Properly",
+    "Formatting flags perform correctly",
     .tags(.formatting),
     arguments: [
       "color",
@@ -145,7 +136,7 @@ struct Formatting {
       "oneLine",
     ]
   )
-  func formattingFlags(flag: String) async throws {
+  func formattingFlagsPerformCorrectly(flag: String) async throws {
     let result = try FileManagerHelper.findContents(
       with: DisplayOptions(
         color: flag.contains("color"),
@@ -173,5 +164,22 @@ struct Formatting {
     if flag.contains("oneLine") {
       #expect(result.contains("Package.swift\n"))
     }
+  }
+
+  // Helper to capture command output
+  private func captureOutput(_ closure: () throws -> Void) throws -> String {
+    let pipe = Pipe()
+    let originalStdout = dup(STDOUT_FILENO)
+    defer { close(originalStdout) }
+
+    dup2(pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO)
+    pipe.fileHandleForWriting.closeFile()
+
+    try closure()
+
+    dup2(originalStdout, STDOUT_FILENO)
+
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    return String(data: data, encoding: .utf8) ?? ""
   }
 }
