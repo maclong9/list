@@ -20,7 +20,7 @@ First install [mise](https://mise.jdx.dev) then run:
 
 ``` sh
 mise settings experimental true
-mint install spm:maclong9/swift-list
+mise install spm:maclong9/swift-list
 ```
 
 > [!NOTE]
