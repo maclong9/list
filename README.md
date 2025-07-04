@@ -14,12 +14,13 @@ sudo curl -L $(curl -s https://api.github.com/repos/maclong9/list/releases/lates
 sudo chmod +x /usr/local/bin/sls
 ```
 
-### With Mint
+### With mise
 
-First install [mint](https://github.com/yonaskolb/Mint) then run:
+First install [mise](https://mise.jdx.dev) then run:
 
 ``` sh
-mint install maclong9/swift-list
+mise settings experimental true
+mint install spm:maclong9/swift-list
 ```
 
 > [!NOTE]
