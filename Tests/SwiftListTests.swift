@@ -21,7 +21,7 @@ extension Tag {
   func listFilesInDirectory(path: String?) async throws {
     let location: URL? = path.map { URL(fileURLWithPath: $0) }
 
-    let result = try FileManagerHelper.findContents(
+    let result = try FileManagerHelper.contents(
       with: DisplayOptions(
         location: location
       )
@@ -49,21 +49,21 @@ extension Tag {
   func coreFlagsPerformCorrectly(flag: String) async throws {
     var location: URL?
     if flag.contains("all") {
-      location = FileManagerHelper.fm.temporaryDirectory.appendingPathComponent("temp")
-      try FileManagerHelper.fm.createDirectory(
+      location = FileManagerHelper.fileManager.temporaryDirectory.appendingPathComponent("temp")
+      try FileManagerHelper.fileManager.createDirectory(
         at: location!,
         withIntermediateDirectories: true,
-        attributes: nil
+        attributes: [:]
       )
 
-      FileManagerHelper.fm.createFile(
+      FileManagerHelper.fileManager.createFile(
         atPath: location!.appendingPathComponent(".hiddenFile").path,
         contents: Data("hidden".utf8),
-        attributes: nil
+        attributes: [:]
       )
     }
 
-    let result = try FileManagerHelper.findContents(
+    let result = try FileManagerHelper.contents(
       with: DisplayOptions(
         location: flag.contains("all") ? location : nil,
         all: flag.contains("all"),
@@ -75,7 +75,7 @@ extension Tag {
 
     if flag.contains("all") {
       #expect(result.contains(".hiddenFile"))
-      try FileManagerHelper.fm.removeItem(at: location!)
+      try FileManagerHelper.fileManager.removeItem(at: location!)
     }
 
     if flag.contains("long") {
@@ -92,7 +92,7 @@ extension Tag {
     .tags(.functionality)
   )
   func listMultiplePaths() async throws {
-    let fm = FileManagerHelper.fm
+    let fm = FileManagerHelper.fileManager
     let tempDir1 = fm.temporaryDirectory.appendingPathComponent("testDir1")
     let tempDir2 = fm.temporaryDirectory.appendingPathComponent("testDir2")
 
@@ -137,7 +137,7 @@ extension Tag {
     ]
   )
   func formattingFlagsPerformCorrectly(flag: String) async throws {
-    let result = try FileManagerHelper.findContents(
+    let result = try FileManagerHelper.contents(
       with: DisplayOptions(
         color: flag.contains("color"),
         icons: flag.contains("icons"),

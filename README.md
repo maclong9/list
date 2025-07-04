@@ -29,23 +29,62 @@ mint install maclong9/swift-list
 ## Usage
 
 ``` sh
-sls [--all] [--long] [--recurse] [--color] [--icons] [--one-line] [<path>]
+sls [OPTIONS] [<path>]
 ```
 
 ### Options
 
+#### Display Options
 - `-a, --all`:               Display all files, including hidden.
 - `-l, --long`:              Display file attributes, one file per line
-- `-r, --recurse`:           Recurse into directories.
+- `-o, --one-line`:          Display each file on its own line.
+- `-1`:                      Force one file per line.
+- `-d, --directory`:         List directories themselves, not their contents.
+
+#### Formatting Options
 - `-c, --color`:             Colorize the output.
 - `-i, --icons`:             Display icons denoting file type.
-- `-o, --one-line`:          Display each file on its own line.
-- `-h, --help`:              Show help information.
+- `-F, --classify`:          Append indicator (/, *, etc.) to entries.
+- `--human-readable`:        Display human readable file sizes (KB, MB, GB).
 
-### Recommended Options
+#### Sorting Options
+- `-t, --sort-time`:         Sort by modification time (newest first).
+- `-S, --sort-size`:         Sort by file size (largest first).
 
-These options provide the best readability while still giving detailed information.
+#### Navigation Options
+- `-r, --recurse`:           Recurse into directories.
 
+#### Help
+- `--help`:                  Show help information.
+
+### Recommended Usage
+
+#### Quick Overview (Default)
+For a quick, clean overview of files and directories:
 ``` sh
-sls -cli [-ra] [<path>] 
+sls
+```
+
+#### Detailed View with Colors and Icons
+For maximum readability with detailed information:
+``` sh
+sls -cli --human-readable
+```
+
+#### Directory Navigation
+For exploring directory structures:
+``` sh
+sls -clir --human-readable
+```
+
+#### Time-based Analysis
+For viewing recently modified files:
+``` sh
+sls -clit --human-readable
+```
+
+#### Size Analysis
+For viewing files by size:
+``` sh
+sls -cliS --human-readable
 ```
