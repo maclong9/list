@@ -48,7 +48,6 @@ sls [OPTIONS] [<path>]
 - `-a, --all` — Display all files, including hidden
 - `-l, --long` — Display file attributes, one file per line
 - `-o, --one-line` — Display each file on its own line
-- `-1` — Force one file per line
 - `-d, --directory` — List directories themselves, not their contents
 
 ## Formatting Options
