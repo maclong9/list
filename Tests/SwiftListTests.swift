@@ -191,7 +191,7 @@ extension Tag {
     .tags(.completion),
     arguments: [
       "bash",
-      "zsh", 
+      "zsh",
       "fish",
     ]
   )
@@ -200,19 +200,19 @@ extension Tag {
     process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
     process.arguments = ["swift", "run", "sls", "--generate-completion-script", shell]
     process.currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-    
+
     let pipe = Pipe()
     process.standardOutput = pipe
     process.standardError = Pipe()
-    
+
     try process.run()
     process.waitUntilExit()
-    
+
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     let output = String(data: data, encoding: .utf8) ?? ""
-    
+
     #expect(!output.isEmpty)
-    
+
     // Verify shell-specific syntax patterns
     switch shell {
     case "bash":
@@ -231,7 +231,7 @@ extension Tag {
       #expect(Bool(false), "Unsupported shell: \(shell)")
     }
   }
-  
+
   @Test(
     "Completion script includes all command options",
     .tags(.completion),
@@ -246,35 +246,35 @@ extension Tag {
     process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
     process.arguments = ["swift", "run", "sls", "--generate-completion-script", shell]
     process.currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-    
+
     let pipe = Pipe()
     process.standardOutput = pipe
     process.standardError = Pipe()
-    
+
     try process.run()
     process.waitUntilExit()
-    
+
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     let output = String(data: data, encoding: .utf8) ?? ""
-    
+
     // Check for key flags and options
     let expectedOptions = [
-      "all", "long", "recurse", "color", "icons", 
-      "one-line", "human-readable", "sort-time", 
-      "sort-size", "directory", "classify", "help"
+      "all", "long", "recurse", "color", "icons",
+      "one-line", "human-readable", "sort-time",
+      "sort-size", "directory", "classify", "help",
     ]
-    
+
     for option in expectedOptions {
       #expect(output.contains(option), "Missing option: \(option) in \(shell) completion")
     }
   }
-  
+
   @Test(
     "Completion script includes short flags",
     .tags(.completion),
     arguments: [
       "bash",
-      "zsh", 
+      "zsh",
       "fish",
     ]
   )
@@ -283,25 +283,27 @@ extension Tag {
     process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
     process.arguments = ["swift", "run", "sls", "--generate-completion-script", shell]
     process.currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-    
+
     let pipe = Pipe()
     process.standardOutput = pipe
     process.standardError = Pipe()
-    
+
     try process.run()
     process.waitUntilExit()
-    
+
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     let output = String(data: data, encoding: .utf8) ?? ""
-    
+
     // Check for key short flags
-    let expectedShortFlags = ["-a", "-l", "-r", "-c", "-i", "-o", "-t", "-S", "-d", "-F", "-1", "-h"]
-    
+    let expectedShortFlags = [
+      "-a", "-l", "-r", "-c", "-i", "-o", "-t", "-S", "-d", "-F", "-1", "-h",
+    ]
+
     for flag in expectedShortFlags {
       #expect(output.contains(flag), "Missing short flag: \(flag) in \(shell) completion")
     }
   }
-  
+
   @Test(
     "Invalid shell produces error",
     .tags(.completion)
@@ -311,17 +313,17 @@ extension Tag {
     process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
     process.arguments = ["swift", "run", "sls", "--generate-completion-script", "invalid-shell"]
     process.currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-    
+
     let pipe = Pipe()
     process.standardOutput = pipe
     process.standardError = Pipe()
-    
+
     try process.run()
     process.waitUntilExit()
-    
+
     #expect(process.terminationStatus != 0, "Invalid shell should produce non-zero exit code")
   }
-  
+
   @Test(
     "Completion script syntax is valid",
     .tags(.completion),
@@ -336,17 +338,17 @@ extension Tag {
     process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
     process.arguments = ["swift", "run", "sls", "--generate-completion-script", shell]
     process.currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-    
+
     let pipe = Pipe()
     process.standardOutput = pipe
     process.standardError = Pipe()
-    
+
     try process.run()
     process.waitUntilExit()
-    
+
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     let output = String(data: data, encoding: .utf8) ?? ""
-    
+
     // Basic syntax validation
     switch shell {
     case "bash":
@@ -354,28 +356,28 @@ extension Tag {
       let openBraces = output.components(separatedBy: "{").count - 1
       let closeBraces = output.components(separatedBy: "}").count - 1
       #expect(openBraces == closeBraces, "Unbalanced braces in bash completion")
-      
+
       let openParens = output.components(separatedBy: "(").count - 1
       let closeParens = output.components(separatedBy: ")").count - 1
       #expect(openParens == closeParens, "Unbalanced parentheses in bash completion")
-      
+
     case "zsh":
       // Check for balanced parentheses and proper zsh syntax
       let openParens = output.components(separatedBy: "(").count - 1
       let closeParens = output.components(separatedBy: ")").count - 1
       #expect(openParens == closeParens, "Unbalanced parentheses in zsh completion")
-      
+
     case "fish":
       // Check for proper fish function syntax
       let functionCount = output.components(separatedBy: "function ").count - 1
       let endCount = output.components(separatedBy: "end").count - 1
       #expect(functionCount <= endCount, "Invalid fish function structure")
-      
+
     default:
       break
     }
   }
-  
+
   // Helper to capture command output
   private func captureOutput(_ closure: () throws -> Void) throws -> String {
     let pipe = Pipe()

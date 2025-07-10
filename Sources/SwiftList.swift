@@ -2,9 +2,9 @@ import ArgumentParser
 import Foundation
 
 #if canImport(Darwin)
-import Darwin
+  import Darwin
 #elseif canImport(Glibc)
-import Glibc
+  import Glibc
 #endif
 
 /// Represents a file with an icon and color coding.
@@ -187,16 +187,18 @@ class FileManagerHelper {
     // Sort contents based on sort option
     let sortedContents = contents.sorted { url1, url2 in
       switch options.sortBy {
-        case .name:
-          return url1.lastPathComponent.localizedCompare(url2.lastPathComponent) == .orderedAscending
-        case .time:
-          let date1 = try? url1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
-          let date2 = try? url2.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
-          return (date1 ?? Date.distantPast) > (date2 ?? Date.distantPast)
-        case .size:
-          let size1 = try? url1.resourceValues(forKeys: [.fileSizeKey]).fileSize
-          let size2 = try? url2.resourceValues(forKeys: [.fileSizeKey]).fileSize
-          return (size1 ?? 0) > (size2 ?? 0)
+      case .name:
+        return url1.lastPathComponent.localizedCompare(url2.lastPathComponent) == .orderedAscending
+      case .time:
+        let date1 = try? url1.resourceValues(forKeys: [.contentModificationDateKey])
+          .contentModificationDate
+        let date2 = try? url2.resourceValues(forKeys: [.contentModificationDateKey])
+          .contentModificationDate
+        return (date1 ?? Date.distantPast) > (date2 ?? Date.distantPast)
+      case .size:
+        let size1 = try? url1.resourceValues(forKeys: [.fileSizeKey]).fileSize
+        let size2 = try? url2.resourceValues(forKeys: [.fileSizeKey]).fileSize
+        return (size1 ?? 0) > (size2 ?? 0)
       }
     }
 
@@ -207,7 +209,9 @@ class FileManagerHelper {
 
       for url in sortedContents {
         let fileString = try fileAttributes(at: url, with: options)
-        let fileLength = fileString.replacingOccurrences(of: "\u{001B}\\[[0-9;]*m", with: "", options: .regularExpression).count
+        let fileLength = fileString.replacingOccurrences(
+          of: "\u{001B}\\[[0-9;]*m", with: "", options: .regularExpression
+        ).count
 
         if currentLineLength + fileLength > width && currentLineLength > 0 {
           result.append("\n")
