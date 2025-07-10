@@ -313,7 +313,7 @@ struct sls: ParsableCommand {
       recurse: recurse,
       color: color,
       icons: icons,
-      oneLine: oneLine || oneColumn,
+      oneLine: oneLine,
       humanReadable: humanReadable,
       directoryOnly: directory,
       classify: classify,
