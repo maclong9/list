@@ -26,6 +26,42 @@ mise install spm:maclong9/swift-list
 > [!NOTE]
 > You can also clone the repository and build the package yourself before moving to your executables.
 
+### Shell Completion
+
+Enable shell completion for enhanced productivity with tab completion of commands and options.
+
+#### Generate Completion Scripts
+
+```sh
+# For bash
+sls --generate-completion-script bash > ~/.bash_completions/sls.bash
+
+# For zsh  
+sls --generate-completion-script zsh > ~/.zsh/completion/_sls
+
+# For fish
+sls --generate-completion-script fish > ~/.config/fish/completions/sls.fish
+```
+
+#### Installation Instructions
+
+**Bash:**
+- With bash-completion: Copy to `/usr/local/etc/bash_completion.d/`
+- Manual: Source the script in `~/.bashrc` or `~/.bash_profile`
+
+**Zsh:**
+- With oh-my-zsh: Copy to `~/.oh-my-zsh/completions/_sls`
+- Manual: Add completion directory to `fpath` and enable `compinit` in `~/.zshrc`:
+  ```sh
+  fpath=(~/.zsh/completion $fpath)
+  autoload -U compinit
+  compinit
+  ```
+
+**Fish:**
+- Copy to any directory in `$fish_completion_path`
+- Typical location: `~/.config/fish/completions/sls.fish`
+
 ## Usage
 
 ``` sh
