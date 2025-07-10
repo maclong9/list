@@ -175,8 +175,8 @@ class FileManagerHelper {
     
     // Add column header if requested and in long format
     if options.header && options.long {
-      result.append("Permissions Owner Group Links Size Date Time Name\n")
-      result.append("----------- ----- ----- ----- ---- ---- ---- ----\n")
+      result.append("Permissions Owner Group Links Size          Date            Time  Name\n")
+      result.append("────────────────────────────────────────────────────────────────────────────\n")
     }
 
     // Handle directory-only option
@@ -254,7 +254,7 @@ class FileManagerHelper {
 @main
 struct sls: ParsableCommand {
   static let configuration = CommandConfiguration(
-    version: "1.2.1"
+    version: "1.2.2"
   )
   
   @Flag(name: .shortAndLong, help: "Display all files, including hidden.")
