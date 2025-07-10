@@ -25,6 +25,7 @@ struct DisplayOptions {
   var humanReadable = false
   var directoryOnly = false
   var classify = false
+  var header = false
   var sortBy: SortOption = .name
 }
 
@@ -171,6 +172,12 @@ class FileManagerHelper {
     var result = ""
 
     let targetURL = options.location ?? URL(fileURLWithPath: fileManager.currentDirectoryPath)
+    
+    // Add column header if requested and in long format
+    if options.header && options.long {
+      result.append("Permissions Owner Group Links Size Date Time Name\n")
+      result.append("----------- ----- ----- ----- ---- ---- ---- ----\n")
+    }
 
     // Handle directory-only option
     if options.directoryOnly {
@@ -282,6 +289,9 @@ struct sls: ParsableCommand {
   @Flag(name: [.customShort("1")], help: "Force one file per line.")
   var oneColumn = false
 
+  @Flag(name: .long, help: "Display column headers explaining the output format.")
+  var header = false
+
   @Argument(help: "List files at one or more paths, omit for current directory.")
   var paths: [String] = []
 
@@ -306,6 +316,7 @@ struct sls: ParsableCommand {
       humanReadable: humanReadable,
       directoryOnly: directory,
       classify: classify,
+      header: header,
       sortBy: sortBy
     )
 

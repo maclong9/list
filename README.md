@@ -82,6 +82,7 @@ sls [OPTIONS] [<path>]
 - `-i, --icons`:             Display icons denoting file type.
 - `-F, --classify`:          Append indicator (/, *, etc.) to entries.
 - `--human-readable`:        Display human readable file sizes (KB, MB, GB).
+- `--header`:                Display column headers explaining the output format (requires -l).
 
 #### Sorting Options
 - `-t, --sort-time`:         Sort by modification time (newest first).
@@ -105,6 +106,12 @@ sls
 For maximum readability with detailed information:
 ``` sh
 sls -cli --human-readable
+```
+
+#### Detailed View with Column Headers
+For understanding what each column represents:
+``` sh
+sls -l --header --human-readable
 ```
 
 #### Directory Navigation
