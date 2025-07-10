@@ -45,7 +45,7 @@ enum TerminalColors: String {
 /// A helper class to manage file system operations.
 class FileManagerHelper {
   static var fileManager: FileManager { FileManager() }
-  
+
   /// Returns the terminal width in characters.
   private static func terminalWidth() -> Int {
     var w = winsize()
@@ -139,7 +139,7 @@ class FileManagerHelper {
     if options.color, let fileRep = fileRepresentation {
       attributesString.append(fileRep.color)
     }
-    
+
     var fileName = location.lastPathComponent
     if options.classify {
       if location.hasDirectoryPath {
@@ -148,7 +148,7 @@ class FileManagerHelper {
         fileName += "*"
       }
     }
-    
+
     attributesString.append(fileName)
     if options.color {
       attributesString.append(TerminalColors.reset.rawValue)
@@ -169,9 +169,9 @@ class FileManagerHelper {
   /// - Returns: A formatted string listing the directory contents.
   static func contents(with options: DisplayOptions) throws -> String {
     var result = ""
-    
+
     let targetURL = options.location ?? URL(fileURLWithPath: fileManager.currentDirectoryPath)
-    
+
     // Handle directory-only option
     if options.directoryOnly {
       result.append(try fileAttributes(at: targetURL, with: options))
@@ -183,20 +183,20 @@ class FileManagerHelper {
       includingPropertiesForKeys: [.fileSizeKey, .isDirectoryKey, .contentModificationDateKey],
       options: options.all ? [] : [.skipsHiddenFiles]
     )
-    
+
     // Sort contents based on sort option
     let sortedContents = contents.sorted { url1, url2 in
       switch options.sortBy {
-      case .name:
-        return url1.lastPathComponent.localizedCompare(url2.lastPathComponent) == .orderedAscending
-      case .time:
-        let date1 = try? url1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
-        let date2 = try? url2.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
-        return (date1 ?? Date.distantPast) > (date2 ?? Date.distantPast)
-      case .size:
-        let size1 = try? url1.resourceValues(forKeys: [.fileSizeKey]).fileSize
-        let size2 = try? url2.resourceValues(forKeys: [.fileSizeKey]).fileSize
-        return (size1 ?? 0) > (size2 ?? 0)
+        case .name:
+          return url1.lastPathComponent.localizedCompare(url2.lastPathComponent) == .orderedAscending
+        case .time:
+          let date1 = try? url1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
+          let date2 = try? url2.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
+          return (date1 ?? Date.distantPast) > (date2 ?? Date.distantPast)
+        case .size:
+          let size1 = try? url1.resourceValues(forKeys: [.fileSizeKey]).fileSize
+          let size2 = try? url2.resourceValues(forKeys: [.fileSizeKey]).fileSize
+          return (size1 ?? 0) > (size2 ?? 0)
       }
     }
 
@@ -204,16 +204,16 @@ class FileManagerHelper {
     if !options.long && !options.oneLine {
       let width = terminalWidth()
       var currentLineLength = 0
-      
+
       for url in sortedContents {
         let fileString = try fileAttributes(at: url, with: options)
         let fileLength = fileString.replacingOccurrences(of: "\u{001B}\\[[0-9;]*m", with: "", options: .regularExpression).count
-        
+
         if currentLineLength + fileLength > width && currentLineLength > 0 {
           result.append("\n")
           currentLineLength = 0
         }
-        
+
         result.append(fileString)
         currentLineLength += fileLength
       }
@@ -291,7 +291,7 @@ struct sls: ParsableCommand {
     } else if sortSize {
       sortBy = .size
     }
-    
+
     let options = DisplayOptions(
       all: all,
       long: long,
