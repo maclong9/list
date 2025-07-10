@@ -253,6 +253,10 @@ class FileManagerHelper {
 
 @main
 struct sls: ParsableCommand {
+  static let configuration = CommandConfiguration(
+    version: "1.2.1"
+  )
+  
   @Flag(name: .shortAndLong, help: "Display all files, including hidden.")
   var all = false
 

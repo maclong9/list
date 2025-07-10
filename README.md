@@ -93,6 +93,7 @@ sls [OPTIONS] [<path>]
 
 #### Help
 - `--help`:                  Show help information.
+- `-v, --version`:           Display version information.
 
 ### Recommended Usage
 
