@@ -42,11 +42,32 @@ sls [OPTIONS] [<path>]
 
 ### Options
 
-**Display**: `-a` (all), `-l` (long), `-o` (one-line), `-1` (force one-line), `-d` (directory)  
-**Format**: `-c` (color), `-i` (icons), `-F` (classify), `--human-readable`, `--header`  
-**Sort**: `-t` (time), `-S` (size)  
-**Navigate**: `-r` (recurse)  
-**Help**: `--help`, `-v` (version)
+#### Display Options
+
+## Display Options
+- `-a, --all` — Display all files, including hidden
+- `-l, --long` — Display file attributes, one file per line
+- `-o, --one-line` — Display each file on its own line
+- `-1` — Force one file per line
+- `-d, --directory` — List directories themselves, not their contents
+
+## Formatting Options
+- `-c, --color` — Colorize the output
+- `-i, --icons` — Display icons denoting file type
+- `-F, --classify` — Append indicator (/, *, etc.) to entries
+- `--human-readable` — Display human readable file sizes (KB, MB, GB)
+- `--header` — Display column headers explaining the output format (requires `-l`)
+
+## Sorting Options
+- `-t, --sort-time` — Sort by modification time (newest first)
+- `-S, --sort-size` — Sort by file size (largest first)
+
+## Navigation Options
+- `-r, --recurse` — Recurse into directories
+
+## Help
+- `--help` — Show help information
+- `-v, --version` — Display version information
 
 ### Common Usage
 
