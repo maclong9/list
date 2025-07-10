@@ -290,9 +290,6 @@ struct sls: ParsableCommand {
   @Flag(name: [.customShort("F"), .long], help: "Append indicator (/, *, etc.) to entries.")
   var classify = false
 
-  @Flag(name: [.customShort("1")], help: "Force one file per line.")
-  var oneColumn = false
-
   @Flag(name: .long, help: "Display column headers explaining the output format.")
   var header = false
 
