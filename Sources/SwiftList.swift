@@ -25,7 +25,6 @@ struct DisplayOptions {
   var humanReadable = false
   var directoryOnly = false
   var classify = false
-  var header = false
   var sortBy: SortOption = .name
 }
 
@@ -87,6 +86,7 @@ class FileManagerHelper {
   /// - Parameters:
   ///   - location: The file URL.
   ///   - options: The display options.
+  ///   - columnWidths: Optional column widths for alignment.
   /// - Throws: An error if file attributes cannot be retrieved.
   /// - Returns: A formatted string of file attributes.
   static func fileAttributes(at location: URL, with options: DisplayOptions) throws -> String {
@@ -173,12 +173,6 @@ class FileManagerHelper {
 
     let targetURL = options.location ?? URL(fileURLWithPath: fileManager.currentDirectoryPath)
     
-    // Add column header if requested and in long format
-    if options.header && options.long {
-      result.append("Permissions Owner Group Links Size          Date            Time  Name\n")
-      result.append("────────────────────────────────────────────────────────────────────────────\n")
-    }
-
     // Handle directory-only option
     if options.directoryOnly {
       result.append(try fileAttributes(at: targetURL, with: options))
@@ -208,6 +202,7 @@ class FileManagerHelper {
         return (size1 ?? 0) > (size2 ?? 0)
       }
     }
+
 
     // Handle terminal width wrapping for non-long format
     if !options.long && !options.oneLine {
@@ -254,13 +249,13 @@ class FileManagerHelper {
 @main
 struct sls: ParsableCommand {
   static let configuration = CommandConfiguration(
-    version: "1.2.2"
+    version: "1.2.4"
   )
   
   @Flag(name: .shortAndLong, help: "Display all files, including hidden.")
   var all = false
 
-  @Flag(name: .shortAndLong, help: "Display file attributes, one file per line")
+  @Flag(name: .shortAndLong, help: "Display file attributes, one file per line. Columns: permissions, owner, group, links, size, date, time, name")
   var long = false
 
   @Flag(name: .shortAndLong, help: "Recurse into directories.")
@@ -290,8 +285,6 @@ struct sls: ParsableCommand {
   @Flag(name: [.customShort("F"), .long], help: "Append indicator (/, *, etc.) to entries.")
   var classify = false
 
-  @Flag(name: .long, help: "Display column headers explaining the output format.")
-  var header = false
 
   @Argument(help: "List files at one or more paths, omit for current directory.")
   var paths: [String] = []
@@ -317,7 +310,6 @@ struct sls: ParsableCommand {
       humanReadable: humanReadable,
       directoryOnly: directory,
       classify: classify,
-      header: header,
       sortBy: sortBy
     )
 
