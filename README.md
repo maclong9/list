@@ -4,6 +4,8 @@
 
 A simple and fast rebuild of the UNIX `ls` command.
 
+<img width="835" height="1018" alt="Screenshot 2025-07-11 at 12 39 23" src="https://github.com/user-attachments/assets/d3bb803a-df3e-4602-8155-932880f84bc2" />
+
 ## Installation
 
 ### Download Pre-built Binaries
