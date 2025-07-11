@@ -4,7 +4,7 @@
 
 A simple and fast rebuild of the UNIX `ls` command.
 
-<img width="835" height="1018" alt="Screenshot 2025-07-11 at 12 39 23" src="https://github.com/user-attachments/assets/d3bb803a-df3e-4602-8155-932880f84bc2" />
+<img width="835" height="1018" alt="Screenshot 2025-07-11 at 12 40 58" src="https://github.com/user-attachments/assets/823505e9-ad33-4e0d-8251-3ef47d48c931" />
 
 ## Installation
 
