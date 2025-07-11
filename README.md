@@ -6,12 +6,25 @@ A simple and fast rebuild of the UNIX `ls` command.
 
 ## Installation
 
-### Manual Install
+### Download Pre-built Binaries
+Download the latest release for your architecture:
+
+**macOS Apple Silicon (M1/M2/M3):**
 ```sh
 sudo mkdir -p /usr/local/bin
-sudo curl -L $(curl -s https://api.github.com/repos/maclong9/list/releases/latest | grep "browser_download_url.*sls" | cut -d\" -f4) -o /usr/local/bin/sls
+sudo curl -L $(curl -s https://api.github.com/repos/maclong9/list/releases/latest | grep "browser_download_url.*sls-aarch64" | cut -d\" -f4) -o /usr/local/bin/sls
 sudo chmod +x /usr/local/bin/sls
 ```
+
+**macOS Intel:**
+```sh
+sudo mkdir -p /usr/local/bin
+sudo curl -L $(curl -s https://api.github.com/repos/maclong9/list/releases/latest | grep "browser_download_url.*sls-x86_64" | cut -d\" -f4) -o /usr/local/bin/sls
+sudo chmod +x /usr/local/bin/sls
+```
+
+**Manual Download:**
+Visit the [releases page](https://github.com/maclong9/list/releases) and download `sls-aarch64` (Apple Silicon) or `sls-x86_64` (Intel) directly.
 
 ### With mise
 ```sh
