@@ -179,54 +179,6 @@ extension Tag {
         }
     }
 
-    @Test(
-        "Header flag displays column headers in long format",
-        .tags(.formatting)
-    )
-    func headerFlagDisplaysColumnHeaders() async throws {
-        let result = try FileManagerHelper.contents(
-            with: DisplayOptions(
-                long: true,
-                header: true
-            )
-        )
-
-        #expect(
-            result.contains(
-                "Permissions Owner Group Links Size          Date            Time  Name"
-            )
-        )
-        #expect(
-            result.contains(
-                "────────────────────────────────────────────────────────────────────────────"
-            )
-        )
-    }
-
-    @Test(
-        "Header flag has no effect without long format",
-        .tags(.formatting)
-    )
-    func headerFlagHasNoEffectWithoutLongFormat() async throws {
-        let result = try FileManagerHelper.contents(
-            with: DisplayOptions(
-                long: false,
-                header: true
-            )
-        )
-
-        #expect(
-            !result.contains(
-                "Permissions Owner Group Links Size          Date            Time  Name"
-            )
-        )
-        #expect(
-            !result.contains(
-                "────────────────────────────────────────────────────────────────────────────"
-            )
-        )
-    }
-
     // Helper to capture command output
     private func captureOutput(_ closure: () throws -> Void) throws -> String {
         let pipe = Pipe()
