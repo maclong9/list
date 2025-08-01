@@ -49,7 +49,7 @@ class FileManagerHelper {
   /// Returns the terminal width in characters.
   private static func terminalWidth() -> Int {
     var w = winsize()
-    guard ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0 else { return 80 }
+    guard ioctl(STDOUT_FILENO, UInt(TIOCGWINSZ), &w) == 0 else { return 80 }
     return Int(w.ws_col)
   }
 
