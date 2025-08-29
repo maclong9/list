@@ -231,20 +231,20 @@ extension Tag {
 
         // Verify shell-specific syntax patterns
         switch shell {
-        case "bash":
-            #expect(output.contains("#!/bin/bash"))
-            #expect(output.contains("_sls()"))
-            #expect(output.contains("complete -F _sls sls"))
-            #expect(output.contains("COMPREPLY"))
-        case "zsh":
-            #expect(output.contains("#compdef sls"))
-            #expect(output.contains("_sls()"))
-            #expect(output.contains("_arguments"))
-        case "fish":
-            #expect(output.contains("function _swift_sls"))
-            #expect(output.contains("complete -c sls"))
-        default:
-            #expect(Bool(false), "Unsupported shell: \(shell)")
+            case "bash":
+                #expect(output.contains("#!/bin/bash"))
+                #expect(output.contains("_sls()"))
+                #expect(output.contains("complete -F _sls sls"))
+                #expect(output.contains("COMPREPLY"))
+            case "zsh":
+                #expect(output.contains("#compdef sls"))
+                #expect(output.contains("_sls()"))
+                #expect(output.contains("_arguments"))
+            case "fish":
+                #expect(output.contains("function _swift_sls"))
+                #expect(output.contains("complete -c sls"))
+            default:
+                #expect(Bool(false), "Unsupported shell: \(shell)")
         }
     }
 
@@ -400,43 +400,43 @@ extension Tag {
 
         // Basic syntax validation
         switch shell {
-        case "bash":
-            // Check for balanced braces and parentheses
-            let openBraces = output.components(separatedBy: "{").count - 1
-            let closeBraces = output.components(separatedBy: "}").count - 1
-            #expect(
-                openBraces == closeBraces,
-                "Unbalanced braces in bash completion"
-            )
+            case "bash":
+                // Check for balanced braces and parentheses
+                let openBraces = output.components(separatedBy: "{").count - 1
+                let closeBraces = output.components(separatedBy: "}").count - 1
+                #expect(
+                    openBraces == closeBraces,
+                    "Unbalanced braces in bash completion"
+                )
 
-            let openParens = output.components(separatedBy: "(").count - 1
-            let closeParens = output.components(separatedBy: ")").count - 1
-            #expect(
-                openParens == closeParens,
-                "Unbalanced parentheses in bash completion"
-            )
+                let openParens = output.components(separatedBy: "(").count - 1
+                let closeParens = output.components(separatedBy: ")").count - 1
+                #expect(
+                    openParens == closeParens,
+                    "Unbalanced parentheses in bash completion"
+                )
 
-        case "zsh":
-            // Check for balanced parentheses and proper zsh syntax
-            let openParens = output.components(separatedBy: "(").count - 1
-            let closeParens = output.components(separatedBy: ")").count - 1
-            #expect(
-                openParens == closeParens,
-                "Unbalanced parentheses in zsh completion"
-            )
+            case "zsh":
+                // Check for balanced parentheses and proper zsh syntax
+                let openParens = output.components(separatedBy: "(").count - 1
+                let closeParens = output.components(separatedBy: ")").count - 1
+                #expect(
+                    openParens == closeParens,
+                    "Unbalanced parentheses in zsh completion"
+                )
 
-        case "fish":
-            // Check for proper fish function syntax
-            let functionCount =
-                output.components(separatedBy: "function ").count - 1
-            let endCount = output.components(separatedBy: "end").count - 1
-            #expect(
-                functionCount <= endCount,
-                "Invalid fish function structure"
-            )
+            case "fish":
+                // Check for proper fish function syntax
+                let functionCount =
+                    output.components(separatedBy: "function ").count - 1
+                let endCount = output.components(separatedBy: "end").count - 1
+                #expect(
+                    functionCount <= endCount,
+                    "Invalid fish function structure"
+                )
 
-        default:
-            break
+            default:
+                break
         }
     }
 
