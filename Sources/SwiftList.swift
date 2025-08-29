@@ -11,6 +11,7 @@ import Foundation
 struct FileRepresentation {
   let icon: String
   let color: String
+  let destination: String?
 }
 
 /// Stores display options for listing files.
@@ -64,22 +65,21 @@ class FileManagerHelper {
     -> FileRepresentation
   {
     if location.hasDirectoryPath {
-      return FileRepresentation(icon: "📁", color: TerminalColors.blue.rawValue)
+      return FileRepresentation(icon: "📁", color: TerminalColors.blue.rawValue, destination: nil)
     }
 
-    if fileManager.isExecutableFile(atPath: location.path) {
-      return FileRepresentation(icon: "⚙️", color: TerminalColors.red.rawValue)
-    }
-
+    // Check for symbolic links first, before checking if executable
     if let fileType = attributes[.type] as? FileAttributeType, fileType == .typeSymbolicLink {
-      if let destination = try? fileManager.destinationOfSymbolicLink(atPath: location.path),
-        fileManager.fileExists(atPath: destination, isDirectory: nil)
-      {
-        return FileRepresentation(icon: "🔗", color: TerminalColors.yellow.rawValue)
+      if let destination = try? fileManager.destinationOfSymbolicLink(atPath: location.path) {
+        return FileRepresentation(icon: "🔗", color: TerminalColors.yellow.rawValue, destination: destination)
       }
     }
 
-    return FileRepresentation(icon: "📄", color: TerminalColors.white.rawValue)
+    if fileManager.isExecutableFile(atPath: location.path) {
+      return FileRepresentation(icon: "⚙️", color: TerminalColors.red.rawValue, destination: nil)
+    }
+
+    return FileRepresentation(icon: "📄", color: TerminalColors.white.rawValue, destination: nil)
   }
 
   /// Retrieves and formats file attributes for display.
@@ -90,13 +90,58 @@ class FileManagerHelper {
   /// - Throws: An error if file attributes cannot be retrieved.
   /// - Returns: A formatted string of file attributes.
   static func fileAttributes(at location: URL, with options: DisplayOptions) throws -> String {
-    let attributes = try fileManager.attributesOfItem(atPath: location.path)
-    let fileRepresentation =
-      (options.color || options.icons) ? determineType(of: location, attributes: attributes) : nil
+    // For symbolic links, we need to get the link's own attributes, not the target's
+    var attributes: [FileAttributeKey: Any]
+    let path = location.path
+    
+    // Use lstat equivalent by checking if it's a symbolic link first
+    var isSymbolicLink = false
+    var statBuffer = stat()
+    if lstat(path, &statBuffer) == 0 {
+      isSymbolicLink = (statBuffer.st_mode & S_IFMT) == S_IFLNK
+    }
+    
+    if isSymbolicLink {
+      // For symbolic links, get the link's own attributes using URL resource values
+      let resourceKeys: [URLResourceKey] = [.fileSizeKey, .contentModificationDateKey, .fileResourceTypeKey]
+      let resourceValues = try location.resourceValues(forKeys: Set(resourceKeys))
+      
+      // Convert to the expected attribute format
+      attributes = [:]
+      attributes[.type] = FileAttributeType.typeSymbolicLink
+      if let fileSize = resourceValues.fileSize {
+        attributes[.size] = fileSize
+      }
+      if let modificationDate = resourceValues.contentModificationDate {
+        attributes[.modificationDate] = modificationDate
+      }
+      
+      // Get additional attributes that might be available
+      do {
+        let additionalAttribs = try fileManager.attributesOfItem(atPath: path)
+        // Only copy non-conflicting attributes
+        for (key, value) in additionalAttribs {
+          if attributes[key] == nil {
+            attributes[key] = value
+          }
+        }
+      } catch {
+        // If we can't get additional attributes, that's fine for broken links
+        // Set some default values
+        attributes[.posixPermissions] = 0o755
+        attributes[.ownerAccountName] = NSUserName()
+        attributes[.groupOwnerAccountName] = "wheel"
+        attributes[.referenceCount] = 1
+      }
+    } else {
+      attributes = try fileManager.attributesOfItem(atPath: location.path)
+    }
+    
+    let fileRepresentation = determineType(of: location, attributes: attributes)
     var attributesString = ""
 
-    if let fileRep = fileRepresentation, options.icons {
-      attributesString.append(fileRep.icon)
+    if options.icons {
+      attributesString.append(fileRepresentation.icon)
       attributesString.append(" ")
     }
 
@@ -137,8 +182,8 @@ class FileManagerHelper {
       }
     }
 
-    if options.color, let fileRep = fileRepresentation {
-      attributesString.append(fileRep.color)
+    if options.color {
+      attributesString.append(fileRepresentation.color)
     }
 
     var fileName = location.lastPathComponent
@@ -151,6 +196,12 @@ class FileManagerHelper {
     }
 
     attributesString.append(fileName)
+    
+    // Add symbolic link destination if this is a symbolic link and we have destination info
+    if let destination = fileRepresentation.destination {
+      attributesString.append(" -> ")
+      attributesString.append(destination)
+    }
     if options.color {
       attributesString.append(TerminalColors.reset.rawValue)
     }
@@ -249,7 +300,7 @@ class FileManagerHelper {
 @main
 struct sls: ParsableCommand {
   static let configuration = CommandConfiguration(
-    version: "1.2.4"
+    version: "1.3.0"
   )
   
   @Flag(name: .shortAndLong, help: "Display all files, including hidden.")
