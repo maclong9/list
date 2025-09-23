@@ -11,7 +11,7 @@ A simple and fast rebuild of the UNIX `ls` command.
 ### Download Pre-built Binaries
 Download the latest release for your architecture:
 
-**macOS Apple Silicon (M1/M2/M3):**
+**macOS Apple Silicon (M Series):**
 ```sh
 sudo mkdir -p /usr/local/bin
 sudo curl -L $(curl -s https://api.github.com/repos/maclong9/list/releases/latest | grep "browser_download_url.*sls-aarch64" | cut -d\" -f4) -o /usr/local/bin/sls
@@ -63,7 +63,6 @@ sls [OPTIONS] [<path>]
 - `-i, --icons` — Display icons denoting file type
 - `-F, --classify` — Append indicator (/, *, etc.) to entries
 - `--human-readable` — Display human readable file sizes (KB, MB, GB)
-- `--header` — Display column headers explaining the output format (requires `-l`)
 
 ## Sorting Options
 - `-t, --sort-time` — Sort by modification time (newest first)
@@ -92,6 +91,6 @@ sls -l --header --human-readable
 sls -clir --human-readable
 
 # Sort by time or size
-sls -clit --human-readable    # by time
+sls -tcli --human-readable    # by time
 sls -cliS --human-readable    # by size
 ```
