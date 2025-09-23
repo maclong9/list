@@ -1,7 +1,7 @@
 import ArgumentParser
+import Configuration
 import Foundation
 import Models
-import Configuration
 import Utilities
 
 @main

@@ -53,7 +53,9 @@ public class FileManagerHelper {
     ///   - options: The display options.
     /// - Throws: An error if file attributes cannot be retrieved.
     /// - Returns: A formatted string of file attributes.
-    public static func fileAttributes(at location: URL, with options: DisplayOptions) throws -> String {
+    public static func fileAttributes(at location: URL, with options: DisplayOptions) throws
+        -> String
+    {
         // For symbolic links, we need to get the link's own attributes, not the target's
         var attributes: [FileAttributeKey: Any]
         let path = location.path

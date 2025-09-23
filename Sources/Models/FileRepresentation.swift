@@ -4,13 +4,13 @@ import Foundation
 public struct FileRepresentation {
     /// The icon representing the file type
     public let icon: String
-    
+
     /// The ANSI color code for the file type
     public let color: String
-    
+
     /// The destination path for symbolic links, nil for non-symbolic link files
     public let destination: String?
-    
+
     /// Creates a new FileRepresentation instance
     /// - Parameters:
     ///   - icon: The icon representing the file type

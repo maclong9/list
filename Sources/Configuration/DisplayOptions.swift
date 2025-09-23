@@ -4,37 +4,37 @@ import Foundation
 public struct DisplayOptions {
     /// The location to list files from
     public var location: URL?
-    
+
     /// Whether to show hidden files
     public var all = false
-    
+
     /// Whether to use long listing format
     public var long = false
-    
+
     /// Whether to recurse into subdirectories
     public var recurse = false
-    
+
     /// Whether to colorize the output
     public var color = false
-    
+
     /// Whether to show file type icons
     public var icons = false
-    
+
     /// Whether to display one file per line
     public var oneLine = false
-    
+
     /// Whether to show human-readable file sizes
     public var humanReadable = false
-    
+
     /// Whether to list directories themselves, not their contents
     public var directoryOnly = false
-    
+
     /// Whether to append indicators (/, *, etc.) to entries
     public var classify = false
-    
+
     /// How to sort the file listing
     public var sortBy: SortOption = .name
-    
+
     /// Creates a new DisplayOptions instance with the specified options
     /// - Parameters:
     ///   - location: The location to list files from (optional)
