@@ -48,34 +48,32 @@ Install by copying to your shell's completion directory or sourcing in your shel
 sls [OPTIONS] [<path>]
 ```
 
-### Options
+## Options
 
-#### Display Options
-
-## Display Options
+### Display Options
 - `-a, --all` — Display all files, including hidden
 - `-l, --long` — Display file attributes, one file per line
 - `-o, --one-line` — Display each file on its own line
 - `-d, --directory` — List directories themselves, not their contents
 
-## Formatting Options
+### Formatting Options
 - `-c, --color` — Colorize the output
 - `-i, --icons` — Display icons denoting file type
 - `-F, --classify` — Append indicator (/, *, etc.) to entries
 - `--human-readable` — Display human readable file sizes (KB, MB, GB)
 
-## Sorting Options
+### Sorting Options
 - `-t, --sort-time` — Sort by modification time (newest first)
 - `-S, --sort-size` — Sort by file size (largest first)
 
-## Navigation Options
+### Navigation Options
 - `-r, --recurse` — Recurse into directories
 
-## Help
+### Help
 - `--help` — Show help information
 - `--version` — Display version information
 
-### Common Usage
+## Common Usage
 
 ```sh
 # Basic listing
