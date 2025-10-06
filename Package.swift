@@ -14,6 +14,15 @@ let package = Package(
             name: "sls",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ],
+            path: "Sources",
+            sources: [
+                "SwiftList.swift",
+                "Configuration/DisplayOptions.swift",
+                "Configuration/SortOption.swift",
+                "Models/FileRepresentation.swift",
+                "Utilities/FileManagerHelper.swift",
+                "Utilities/TerminalColors.swift",
             ]
         ),
         .testTarget(

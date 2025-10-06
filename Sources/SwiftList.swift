@@ -1,12 +1,10 @@
 import ArgumentParser
-import Configuration
 import Foundation
-import Models
-import Utilities
 
 @main
 struct List: ParsableCommand {
     static let configuration = CommandConfiguration(
+        commandName: "sls",
         version: "1.3.0"
     )
 

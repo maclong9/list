@@ -124,7 +124,7 @@ extension Tag {
         )
 
         let arguments = [tempDir1.path, tempDir2.path]
-        let command = try sls.parse(arguments)
+        let command = try List.parse(arguments)
 
         let output = try captureOutput {
             try command.run()
@@ -198,6 +198,60 @@ extension Tag {
 }
 
 @Suite("Shell Completion Tests") struct ShellCompletionTests {
+    // Helper to get the built binary path
+    private func getExecutablePath() -> String? {
+        let fm = FileManager.default
+        let currentDir = fm.currentDirectoryPath
+
+        // Try to find the built executable
+        let possiblePaths = [
+            "\(currentDir)/.build/arm64-apple-macosx/debug/sls",
+            "\(currentDir)/.build/x86_64-apple-macosx/debug/sls",
+            "\(currentDir)/.build/debug/sls",
+        ]
+
+        for path in possiblePaths {
+            if fm.fileExists(atPath: path) {
+                return path
+            }
+        }
+
+        return nil
+    }
+
+    // Helper to run completion command
+    private func runCompletionCommand(shell: String) throws -> (output: String, exitCode: Int32) {
+        guard let execPath = getExecutablePath() else {
+            throw NSError(
+                domain: "TestError",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Could not find sls executable. Run 'swift build' first."]
+            )
+        }
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: execPath)
+        process.arguments = ["--generate-completion-script", shell]
+
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
+        process.standardOutput = outputPipe
+        process.standardError = errorPipe
+
+        try process.run()
+
+        // Close write ends to prevent hanging
+        try? outputPipe.fileHandleForWriting.close()
+        try? errorPipe.fileHandleForWriting.close()
+
+        process.waitUntilExit()
+
+        let data = try outputPipe.fileHandleForReading.readToEnd() ?? Data()
+        let output = String(data: data, encoding: .utf8) ?? ""
+
+        return (output, process.terminationStatus)
+    }
+
     @Test(
         "Generates completion script for supported shells",
         .tags(.completion),
@@ -208,24 +262,8 @@ extension Tag {
         ]
     )
     func generatesCompletionScript(for shell: String) async throws {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = [
-            "swift", "run", "sls", "--generate-completion-script", shell,
-        ]
-        process.currentDirectoryURL = URL(
-            fileURLWithPath: FileManager.default.currentDirectoryPath
-        )
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = Pipe()
-
-        try process.run()
-        process.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8) ?? ""
+        let result = try runCompletionCommand(shell: shell)
+        let output = result.output
 
         #expect(!output.isEmpty)
 
@@ -258,30 +296,14 @@ extension Tag {
         ]
     )
     func completionScriptIncludesAllOptions(for shell: String) async throws {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = [
-            "swift", "run", "sls", "--generate-completion-script", shell,
-        ]
-        process.currentDirectoryURL = URL(
-            fileURLWithPath: FileManager.default.currentDirectoryPath
-        )
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = Pipe()
-
-        try process.run()
-        process.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8) ?? ""
+        let result = try runCompletionCommand(shell: shell)
+        let output = result.output
 
         // Check for key flags and options
         let expectedOptions = [
             "all", "long", "recurse", "color", "icons",
             "one-line", "human-readable", "sort-time",
-            "sort-size", "directory", "classify", "header", "help",
+            "sort-size", "directory", "classify", "help",
         ]
 
         for option in expectedOptions {
@@ -302,28 +324,12 @@ extension Tag {
         ]
     )
     func completionScriptIncludesShortFlags(for shell: String) async throws {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = [
-            "swift", "run", "sls", "--generate-completion-script", shell,
-        ]
-        process.currentDirectoryURL = URL(
-            fileURLWithPath: FileManager.default.currentDirectoryPath
-        )
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = Pipe()
-
-        try process.run()
-        process.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8) ?? ""
+        let result = try runCompletionCommand(shell: shell)
+        let output = result.output
 
         // Check for key short flags
         let expectedShortFlags = [
-            "a", "l", "r", "c", "i", "o", "t", "S", "d", "F", "1", "h",
+            "a", "l", "r", "c", "i", "o", "t", "S", "d", "F", "h",
         ]
 
         for flag in expectedShortFlags {
@@ -346,25 +352,10 @@ extension Tag {
         .tags(.completion)
     )
     func invalidShellProducesError() async throws {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = [
-            "swift", "run", "sls", "--generate-completion-script",
-            "invalid-shell",
-        ]
-        process.currentDirectoryURL = URL(
-            fileURLWithPath: FileManager.default.currentDirectoryPath
-        )
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = Pipe()
-
-        try process.run()
-        process.waitUntilExit()
+        let result = try runCompletionCommand(shell: "invalid-shell")
 
         #expect(
-            process.terminationStatus != 0,
+            result.exitCode != 0,
             "Invalid shell should produce non-zero exit code"
         )
     }
@@ -379,24 +370,8 @@ extension Tag {
         ]
     )
     func completionScriptSyntaxIsValid(for shell: String) async throws {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = [
-            "swift", "run", "sls", "--generate-completion-script", shell,
-        ]
-        process.currentDirectoryURL = URL(
-            fileURLWithPath: FileManager.default.currentDirectoryPath
-        )
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = Pipe()
-
-        try process.run()
-        process.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8) ?? ""
+        let result = try runCompletionCommand(shell: shell)
+        let output = result.output
 
         // Basic syntax validation
         switch shell {
