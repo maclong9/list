@@ -27,6 +27,11 @@ mise settings experimental true
 mise install spm:maclong9/swift-list
 ```
 
+### With brew
+```sh
+brew install maclong9/tap/sls
+```
+
 ### Shell Completion
 Generate completion scripts:
 ```sh
